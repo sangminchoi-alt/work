@@ -87,7 +87,7 @@ extract_one_test() {
             [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.2.201" || REMOTE_IP="192.168.2.203"
             ;;
         "BFX-UA300")
-            [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.2.205" || REMOTE_IP="192.168.2.204"
+            REMOTE_IP="192.168.2.204"
             ;;
     esac
 
@@ -98,7 +98,6 @@ extract_one_test() {
         192.168.2.201) USER="dev2-google01" ;;
         192.168.2.203) USER="dev2-google03" ;;
         192.168.2.204) USER="dev2-google04" ;;
-        192.168.2.205) USER="dev2-google-05" ;;
         *) echo "❌ USER 매핑 실패"; return ;;
     esac
 
