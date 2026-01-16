@@ -1,0 +1,319 @@
+
+changed projects : 
+
+	bootloader/uboot-repo/bl2/bin changed from b0698b6c46610d60ff1ffae7be93eb38a2247b80 to 7fe2ee1f17a93a4314ce52e5aedbe021273bdb22
+		[+] 7fe2ee1f1 commit b6a85398d4b8af16f1f63d494a91c3cbd6b86ffb Author: Meng yu <meng.yu@amlogic.com> Date: Tue Jun 3 13:59:18 2025 +0800
+		[+] 72f96b541 commit a534f989e80ea42f3162e8fb7fb8b0d9bddd2c5c Author: Meng yu <meng.yu@amlogic.com> Date: Fri Jun 13 10:02:07 2025 +0800
+		[+] 4dda2f14a commit 69b466a0ce99b13b83641c94fbd88bb4d87c2d07 Author: Meng yu <meng.yu@amlogic.com> Date: Tue Jun 3 14:05:48 2025 +0800
+		[+] f350162ae commit 7db6bf8b311573bf84ae34f4471cd9c23f7d8271 Author: xiang.fu <xiang.fu@amlogic.com> Date: Mon Sep 8 15:54:01 2025 +0800
+		[+] 994ad6920 commit a1c2bcd6e9dc9a10f816bdeb8e189fd73d32817e Author: xiang.fu <xiang.fu@amlogic.com> Date: Wed Sep 3 11:17:56 2025 +0800
+		[+] f38087534 commit 34b9751fac12704524d7a08b0730b44f899c4d1d Author: xiang.fu <xiang.fu@amlogic.com> Date: Tue Jul 22 15:05:06 2025 +0800
+		[+] db7dc7915 commit 4e84452692d38b9eb5a929bc6c85beb09a9abc6a Author: Tao Zeng <tao.zeng@amlogic.com> Date: Sat Jun 22 15:34:17 2024 +0800
+
+	bootloader/uboot-repo/bl30/rtos_sdk/boards/riscv changed from 06de010ab0ba3c2a7d434bb3caded6254dc0aa5f to 30877700b0649ddda71f2f5a1994c6844e3d69d1
+		[+] 3087770 SoC s6: bl30 support DSP suspend resume with ffv [2/2]
+
+	bootloader/uboot-repo/bl30/rtos_sdk/drivers_aocpu changed from bbda17a25f7be0b75d7389006f387ab73a60847a to f9782b48a21c73f8316a96c21ff93ea2cfebf40c
+		[+] f9782b4 SoC: Common: optimise w2 wakeup wave detect [1/1]
+
+	bootloader/uboot-repo/bl30/rtos_sdk/soc/riscv changed from e69e40e5cb223da3f4b8aab31e750d8546e55ef1 to 9e8afba2f73112a2a254238112a1f5e1dbaa126f
+		[+] 9e8afba SoC s6: bl30 support DSP suspend resume with ffv [1/2]
+
+	bootloader/uboot-repo/bl30/src_ao changed from a9c80e7b759a9ffaeb53cf1efb538f5d4614ed5a to ab51a2b3af80951b5e1bb1cd934043b124e07e42
+		[+] ab51a2b BT: optimise w2 wakeup wave detect [1/1]
+
+	bootloader/uboot-repo/bl31/bl31_2.7/bin changed from a9721e310285bcbbca2ecf17cd38c681f732fb0f to 3e112e46ab530422a719dc857d4d6267d7f3355f
+		[+] 3e112e46a commit f06b1f5a6fc4f6bc5c4d1a4d741becc6a954b6a8 Author: binbin.wang <binbin.wang@amlogic.com> Date: Wed Aug 27 20:31:41 2025 +0800
+		[+] 2b7cabdd8 commit 004cffa8413fecd2d5e05827f7d262c524f5c277 Author: Meng yu <meng.yu@amlogic.com> Date: Fri May 30 14:23:56 2025 +0800
+		[+] 928ce439f commit c4b6aff64e2863d7049ea3e6bbc2e67083fceb22 Author: benlong.zhou <benlong.zhou@amlogic.com> Date: Mon Mar 17 19:20:22 2025 +0800
+
+	bootloader/uboot-repo/bl32/bl32_3.8/bin changed from 6727b08c21acf723e328af2acf66fb0f37849cbf to 3f2a9cf3fd9d3e373b90552d5c66ef87a85d1cda
+		[+] 3f2a9cf3 commit 7648e0a00d335f6579e82f1b7fba643689b596f7 Author: Hangyu Li <hangyu.li@amlogic.com> Date: Thu Aug 28 16:03:18 2025 +0800
+
+	bootloader/uboot-repo/bl33/v2019 changed from 6ca7a941a4907cd6e6c9940e0487613dc124be23 to 81d03f1c5633bb03a17f8a49de927f5a25f1681d
+		[+] 81d03f1c56 hdmitx: Add a policy to prioritize 50hz output [1/1]
+		[+] 69026872e4 bl33: gzip decompress dtb fail [1/1]
+		[+] 97bd74aad4 mmc: send a CMD12 when CMD21 fails. [1/1]
+
+// 여기까지 완료
+
+	bootloader/uboot-repo/bl33/v2023 changed from 1c48122bde20c4f4d109b351786569a4124a9267 to d39dee242ca7eeed4cf87d8d72b2c08e3887fb0b
+		[+] d39dee242c hdmitx: Add a policy to prioritize 50hz output [1/1]
+		[+] f4428ff919 hdmitx: modify wait pll lock [1/2]
+		[+] 0fb12ebdb7 bl33: gzip decompress dtb fail [1/1]
+		[+] 94f42b4b1a factoryBurn: usb_burn: fix display init crash [1/1]
+		[+] 2b02dfa7c9 mmc: send a CMD12 when CMD21 fails. [1/1]
+		[+] 2ced26b26a bl33: mmc write ddr fastboot parameter [1/1]
+
+	bootloader/uboot-repo/fip changed from f887e287edf59f7317dde2050f3aa41808ec0b69 to 05b39a8aede6749775c9fb36bd289f3e3ed48374
+		[+] 05b39a8 fip: update tools to support large bl30 size [1/1]
+		[+] 07aa559 s6,s7d: fix chipset variant build when user provides binaries [1/1]
+		[+] 2c40013 s6,s7d: fix chipset variant build [1/1]
+		[+] 33d8813 s7d: support a single chipset-signed binary [1/1]
+		[+] 1a64e2f s6: support a single chipset-signed binary [1/1]
+		[+] 547472a s7d,s6: update acpu-imagetool for layout resizing support [1/1]
+		[+] ff7a6b0 FIP: S6/S7D: support device signing for different root index [1/1]
+
+	common/common14-5.15/common/common_drivers changed from ee63fdfb024a8e50e61e3c53e1428f3707c58810 to e33d85a69fb6a6fac9bff12d9aef49f4556b0509
+		[+] e33d85a69 pdvfs: fix s5 cpu pdvfs for kernel 5.15 [1/1]
+		[+] e083c2649 pdvfs: enable s5 cpu pdvfs [1/1]
+		[+] d05b7e0f3 audio: start pdm clk enable [1/1]
+		[+] 232b16095 dsp: kernel5.15 dsp sram cannot load dsp firmware [1/1]
+		[+] 9cf64342d host: Host driver cause Kernel hang up [1/1]
+		[+] df444ff35 host: add shutdown function [1/1]
+		[+] a924e2d12 SoC s6 sc2: do not wake up screen when ffv wake up [4/5]
+		[+] 1fe32a00d host dsp: ffv fix cfi check failed [1/1]
+		[+] 40ddc18e8 SoC s6: optimize DSP ffv to enter dsp power down in early suspend [3/3]
+		[+] 1e1f00d5a SoC s6: optimize DSP ffv to send uevent to audio hal [1/1]
+		[+] ac4c39212 SoC s6: fix video blurred screen issue [1/1]
+		[+] 1ac59323b audio: Default enable ffv [1/2]
+		[+] 7e5d76516 audio: always set hdmitx mute [1/1]
+		[+] abdd6f43d mm: cma allocation continues to busy and exit. [1/1]
+		[+] 3a87f4ad8 codec_mm: CF1 Eliminate the sleep behavior between critical sections. [1/1]
+		[+] 67d074390 codec_mm: CF2 Optimization for small-size memory allocation. [1/1]
+		[+] 0ebc1e8c5 debug: optimize usb/tty/DMC irqratio warning [1/1]
+		[+] 13fb07c46 mm: remove compound page flag in large slab optimization. [1/1]
+		[+] 046dbe515 hdmitx: suspend resume maybe no signal [1/1]
+		[+] 00f4b89eb hdmitx: config enc clk for vsync when pre enable mode failed [1/1]
+		[+] 2e77900b2 amfc: make sure decriptor address is cacheline size aligned [1/1]
+		[+] 77ab13b86 hdmitx: modify wait pll lock [2/2]
+		[+] 62c9e4200 scripts: oem_license.rc wait device create by audio-utils.ko [1/1]
+		[+] 42d2021dc scripts: oem_license.rc wait device create by audio-utils.ko [1/1]
+		[+] 2b7375c52 amdv: bypass lc-evc source [1/1]
+		[+] 11cc88cbd vpp: remove VPP_MISC bit10 set in 3d mode [1/1]
+		[+] 30217ba1a tee: optee: Allow to freeze the task waiting for tee-supplicant [1/1]
+		[+] 052b6ff7b tee: optee: Allow to freeze while waiting in optee_notif_wait [1/1]
+		[+] 33da9b679 keeper: Shrinking the critical section [1/1]
+		[+] 4901fa694 demux: don't get info when filter not ready [1/1]
+		[+] d18dd453f vpp: green line at the bottom of the video [1/1]
+		[+] 2e46647b8 vpp: fix NV12/21 bandwidth hight issue [1/1]
+		[+] c142a0ed3 codec_mm: fix some coverity issue [1/1]
+		[+] 44a4f7ff5 cec: modify freeze&wakeup reason [1/1]
+		[+] 143c0c979 hdmitx: fixed the issue of no display at 23.976 frame rate under qms [1/1]
+		[+] 3dfbd7c3b ir: fix kasan invalid free error [1/1]
+		[+] 9a4332318 eth: optimizes flow control for maxio phy [1/1]
+		[+] f5497b34e SEI: dts enable maxio ethernet gphy [1/1]
+		[+] f10868416 SEI: add maxio ethernet gphy driver [1/1]
+		[+] 32a6ca643 dts: s7 efuse support [1/1]
+		[+] d53d27621 mmc: send a CMD12 when CMD21 fails. [1/1]
+
+	common/driver_modules/gpu changed from 5e4dbd355d87bc04bfeb1c0b4c5544a0496c4ecf to c82b005ed0a8f361694e5f4e71003f6f02c91c6f
+		[+] c82b005 gpu: fix warning info [1/1]
+
+	common/driver_modules/media_modules changed from 876c52c84e733fb331a6d1bec252b320e534d16e to 06570b7ecffa213cb6bab7b47e6dc89ebb2b5771
+		[+] 06570b7e H264: CB1 support H264 interlace dw16 switch to progressive dw3. [1/1]
+		[+] c103608a di-backend: CB2 DI-backend support in dual-core mode. [1/1]
+		[+] be06a0dc decoder: CB1 Fix mosaic issue during video playback [1/1]
+		[+] a4e78278 v4l: CB1 crashes when playing special streams. [1/1]
+		[+] 6dd689c7 vp9: CB0 fix crash when seeking to the end of stream by VLC player [1/1]
+
+	common/driver_modules/wifi_bt/bt changed from 92c95124501238fbdd0c1ed12ffdc37e47b69d24 to 8784e32732dd6c91daf272a2a05e2a0405d47cc7
+		[+] 8784e32 BT: fixed w2l release 3.1 sdio bus err when suspend [1/1]
+		[+] f4887cc BT: fixed w2l release 3.1 vts failed in android 16 [2/2]
+		[+] 9921d94 BT: amlbt_release v3.3.9 for w2l release v3.1 [4/4]
+		[+] 1e0fb87 BT: amlbt_release v3.3.8 for w2 release v3.5 [2/2]
+		[+] 20bd968 BT: U and 16 use separate BT compilation scripts [1/1]
+
+	common/driver_modules/wifi_bt/wifi changed from 5cd307c8dbe5550dc9e90ffb47920b6343d090a8 to 3c059a901cea7d72dfab0d58c1b20b961100a131
+		[+] 3c059a9 wifi: w2 config CONFIG_MAGIC_PACKET_EN [1/1]
+		[+] 166842e wifi: AOSP close google cast wakeup [1/1]
+		[+] 60d1715 w2: enable google cast and magic wake-up support [1/1]
+
+	common/driver_modules/wifi_bt/wifi/amlogic/w2 changed from cf1c7cac4546e2bb505464b2780a328a5dac66b5 to f81385d3910542eda934ab46b7979c1a73d77ae6
+		[+] f81385d W2 drv: w2 sdio recovery fail [1/1]
+		[+] fa3361c wifi: android16 pcie suspend Problem [1/1]
+		[+] 734e13f wifi: update w2 wifi driver to v2.2.0 [1/1]
+		[+] 0aa7d80 wifi: android 16 change branch to plt [1/1]
+
+	common/driver_modules/wifi_bt/wifi/amlogic/w2l changed from b0b9426ae2f5fab10f042adeadb9ba5a95105385 to 97db2299665c50259a92197b00471881baa62a2c
+		[+] 97db229 wifi: v1.2.1_2025-11.10-w2l-r3.1 driver:331cce9b [1/1]
+		[+] e2a1795 wifi: v1.2.0_2025-11.04-w2l-r3.1 driver:ac8090e7 [1/1]
+
+	device/amlogic/common changed from deca43db9f5d225d4e76539c72430281d85bbce6 to 191344a49c4377c96614784cca216c09ea1ee37b
+		[+] 191344a4 device: add xstreamparse config [1/1]
+		[+] 663fc302 sysfs: failed to write sysfs [1/1]
+		[+] 9f635ed3 audio: Add mpegh to PRODUCT_PACKAGES. [1/2]
+		[+] 489fb9d1 audio: add mpegh setting apis in droidaudio [1/2]
+		[+] 951caddf audio: add mpegh in audio policy xml. [2/2]
+		[+] 2dcf9f1b droidaudio: add droidaudio_vnd_tester and droidaudio_sys_tester [1/2]
+		[+] bb4ffaf3 nn : config for service for Selinux [1/1]
+		[+] c692926f audio: add vocal control for karaoke [3/3]
+		[+] f58a1e10 selinux: add sepolicy for read system_boot_reason_prop [2/2]
+		[+] 95de74dc audio: add AUDIO_FORMAT_DTS_HD in xml [1/1]
+
+	device/amlogic/oppen changed from e0a494c874b3e351d417a570e8c36a14847aac30 to 3ec586ee60c85577c735da9465ab06f1d0d0205f
+		[+] 3ec586e oppen: add dongle config. [1/1]
+
+	device/amlogic/raman changed from 6a272c8780aa5c846370345f6cfcb0b42d51e622 to 62435b077011f1b9966fbeeacd2e4de26cfd8306
+		[+] 62435b0 FFV: disable FFV in aosp build [1/1]
+		[+] 14eee9a audio: Default enable ffv [2/2]
+
+	external/sqlite changed from f53ec13b6f0c64283fbd6527cf730a8af1f613bf to ca551c7df7e49c72a0f27e2b0365c1db9d6e5ecc
+		[+] ca551c7 sqlite3 : Enhance database stability [1/1]
+
+	frameworks/base changed from e02071cbbec653716313d0731b838f87f193ed1c to e2ed74515ecc2901557a4e58dc59072a9296c06e
+		[+] e2ed74515ecc cec: Sync with mandatory 20251114 code [1/1]
+		[+] c2ea61ad737a Revert "cec: add aml feature of hdmi cec [1/1]"
+		[+] 4ab15400831e HDMI-CEC: Disable AVB for Playback Devices
+		[+] d59c910897b9 Revert "cec: add some updates [1/1]"
+
+	hardware/amlogic changed from a6c825157631d65ce3512364859c68a2459073b8 to 8f8b33f33f8ee9d2e2d929097cd33140d290c24a
+		[+] 8f8b33f3 xstreamparser: refine stream parse flow [1/1]
+		[+] c01f8155 tunerhal: refine IpFilter Event [1/1]
+		[+] 1694adea tunerhal: fixed ATSC3.0 scan fail [1/1]
+		[+] 877e42fe tunerhal: support xstreamparse [1/1]
+		[+] e7723617 tunerhal: fixed I-Frame offset is wrong [1/1]
+		[+] 588017fe tunerhal: fixed set ts input wrong [1/1]
+		[+] 20df1c5f audio: fix dtv replay no audio issue [1/1]
+		[+] e2a2fb8e audio: prevent array overflow [1/1]
+		[+] f01ba83d audio: Optimize the suspend wake-up process [1/1]
+		[+] d590c405 audio: fix vts error [3/3]
+		[+] c9091044 audio: set low energy mode [1/2]
+		[+] 8d0d227a audio: katniss can't release ref audio-in lock [1/1]
+		[+] 2cbd5590 audio: compile error [1/1]
+		[+] 565d3653 audio: Timely update ffv_suspend_status [1/1]
+		[+] bf1f3c2f audio: Modify the parameters of vwe [2/2]
+		[+] af9e4fc6 audio: optimize the way to obtain wake-up events [1/1]
+		[+] dceba6f8 audio: retrieve the quantity of fetch data [1/1]
+		[+] 1060af09 audio: failed to retrieve timestamp [1/1]
+		[+] 677b84d2 audio: optimize FFV flow [1/1]
+		[+] c2bb51c2 audio: wake up device in dsp to do ffm [3/3]
+		[+] 026aef02 modepolicy: output 50hz no signal [1/1]
+		[+] 4addf460 modepolicy: Add a policy to prioritize 50hz output [1/2]
+		[+] bcd0632f hwc2: Add a policy to prioritize 50hz output [2/2]
+		[+] c98e250c hwc: provide video position [1/1]
+		[+] a50635ac mesondisplay: fix not display when boot with cvbs connector [1/1]
+		[+] e6090413 hwc: fix setPerferredMode and sf setmode deadlock [1/1]
+		[+] fd7f5319 gralloc: Delete unnecessary usage checks [1/1]
+		[+] 068e9a9d audio: dtv support mpegh format [1/1]
+		[+] 5c8cfa84 audio: solve dtv audio mpegh no output issue [1/1]
+		[+] 597c9d43 audio: add mpeg-h ui manager part. [1/1]
+		[+] c11182c6 audio: Convert output bit depth according to configuration. [1/1]
+		[+] e860dba0 audio: add mpegh support. [1/2]
+		[+] 24394ca8 audio: fix DR/AC4 signal stutter issue. [1/1]
+		[+] b0f3adf0 audio: enlarge patch ringbuffer for 32 bits [1/1]
+		[+] e0d1a2d3 audio: fix DAP state control for open/close operations [1/1]
+		[+] e37fa21c audio: Fix pop noise issue when switch audio format. [1/1]
+		[+] 132dd39b audio: Fix sink format issue after main stream close [1/1]
+		[+] e7c00c8e audio: implement the vocal isolation for karaoke [1/1]
+		[+] a2cb08e0 cec: sync device name with framework [1/1]
+		[+] 819ca441 audio: fix mixer_open failed [2/2]
+		[+] aabc179c camera: blob buffer allocat cach Ion buffer in soft encoder [1/1]
+		[+] 285c9122 boothal: keep quiescent when reboot for ARB [1/2]
+		[+] 866c70df cec: report hotplug event to framework if possible [1/1]
+		[+] 3f437036 audio : remove some duplicate code [1/1]
+		[+] 6a0699bd audio : fix nts non-tunel pcm and aaudio loudness mismatch [1/1]
+		[+] 447d7ca3 audio: fix ms12 decoder start threshold no effect [1/1]
+		[+] e92958a2 audio : fix nts non-tunel pcm and aaudio loudness mismatch [1/1]
+		[+] 019a88d0 audio: AC4 loudness is not right on OTT device. [1/1]
+
+	packages/modules/Bluetooth changed from b8a638a76fc9dde62800a7a315e6c426688488c6 to 760f77f6c1a447243b353c566d499147e999ce40
+		[+] 760f77f6c1 BT: ABS volume support is not informed to Audio sometimes. [1/1]
+
+	system/vold changed from 8de05369486346f155a07a9ae1c03122ded16792 to ccec736ef4cce392ffb9a64152c3459c0116e5f9
+		[+] ccec736 Add time_offset=<UTC offset> to mount arguments
+
+	vendor/amlogic/common changed from 1aea1f43ec6a3ea3b25e417659973564e287fda0 to d03c2cc943c22f391b3c584089113f644b34fa14
+		[+] d03c2cc9 BT: amlbt_release v3.3.9 for w2l release v3.1 [3/4]
+		[+] d5d88e91 BT: amlbt_release v3.3.9 for w2l release v3.1 [2/4]
+		[+] a9f08253 BT: fixed w2l release 3.1 vts failed in android 16 [1/2]
+		[+] ec5ba201 BT: amlbt_release v3.3.9 for w2l release v3.1 [1/4]
+		[+] 5e1c3a03 widevine: CB0 Ta heap memory no release cause crash [1/1]
+		[+] 7dc0ab76 wvcas: CB2 Failed to close the descrambler used for recording [1/1]
+		[+] 973f7366 secmem_test: CF2 Integrate secmem_test to amts [1/1]
+		[+] 0b6f87de Revert "add vmx secure a for x5 v1 dump session status"
+		[+] baf3039a miracast-hdcp: CB2 incorrect TA information [1/1]
+		[+] a6d23ff2 JCas: CF2 Support receiving provision parameters from TIS [1/2]
+		[+] 214d7086 nnrt : release nnrt 2.0.8.9 patch for 32bit [1/1]
+		[+] 21df18ec videotunnelrenderer: CB2 push blank buffer for tunnel mode [1/1]
+		[+] 6b82edf7 BT: amlbt_release v3.3.8 for w2 release v3.5 [1/2]
+		[+] 2751be40 JCas: CF1 Support MediaCas Status Event Notify with TIS [1/2]
+		[+] a66e6c2d wvcas: CB2 Fix Widevine NSV Review [1/1]
+		[+] de058fe1 widevine: CF2 add profile name [1/1]
+		[+] a59cb92d dsp: autostart too late [1/1]
+		[+] 2a014217 audio: add MBX_TINYALSA_API_GET_DELAY_FRAMES cmd [1/3]
+		[+] 92795cba audio: add CMD_AML_ENABLE_FFV mailbox cmd [1/3]
+		[+] 627bf653 audio: encapsulate the mailbox interface [1/2]
+		[+] a3a07fbc codec2: CB1 Fix DTSX and DTS memory leak during teardown. [1/1]
+		[+] 94e630dd AmlTFDelegate: release AmlTFDelegate v1.2.19.1 [1/2]
+		[+] 715ecec6 nn : service optimize [1/1]
+		[+] bec8955f nn : config for service [1/2]
+		[+] 751d8d49 nn : config for NN App [1/1]
+		[+] 98fd32e2 nn : config for Selinux sysfs [4/4]
+		[+] f1240ea2 nn : config for Android 16 selinux [1/1]
+		[+] 9263ccb9 nn: Android 16 config aidl neuralnetwork and selinux [1/1]
+		[+] d33b5acd nn: support aidl neuralnetwork and selinux [1/1]
+		[+] 41e69376 audio: some service is not declare [1/1]
+		[+] 13ed5670 audio: set asi update prop after receive uevent [1/1]
+		[+] e4b94de4 audio: Add conditional compilation of mpegh license. [2/2]
+		[+] 14d1a40b audio: Fix droidaudio no recover mpegh system settings after reboot [1/1]
+		[+] 2a2169a3 audio: add mpegh setting apis in droidaudio [2/2]
+		[+] 9d1a15e4 ir_tools: update IOCTL cmds [1/1]
+		[+] e7ec13c6 ir_tools: support more IOCTL cmds [1/1]
+		[+] 4db5d74b droidaudio: fix the surround mode error after reboot [1/1]
+		[+] 89237306 droidaudio: add droidaudio_vnd_tester and droidaudio_sys_tester [2/2]
+		[+] fce7b503 wifi: add w2l rf txt on qurra [1/1]
+		[+] 10969820 audio: add vocal control for karaoke [2/3]
+		[+] 9709e376 softap: softap support config [2/2]
+		[+] b806b2d0 BT: fix mailbox bt name err [1/1]
+		[+] d1e3258e BT: fixed fwlog fifo_init return type error [1/1]
+		[+] 74e477ca BT: Write fwlog files using thread [1/1]
+
+	vendor/amlogic/common/auto_patch changed from 70d7971c2a0a54034784ef606b2757361e17b103 to 884d7a901b1342a19ed2470a0e5ed887bd71a508
+		[+] 884d7a9 mandatory: fixed conflict in merging 20251114
+		[+] 3bfff97 cec: make the local mute condition stricter [1/1]
+		[+] 1d7bfe6 Fat32: file time is inconsistent with the computer [1/1]
+
+	vendor/amlogic/common/external/ffmpeg changed from d269f63fcc86a3a186e6496388edb565b159828a to b6b01ce35757b55efe6a0ecb184f7ac042796124
+		[+] b6b01ce ffmpeg: CF2 modify for support the playback of mpegh [1/3]
+		[+] c2283dd ffmpeg: CB2 Playback not smooth when play specific eac3 stream [1/1]
+
+	vendor/amlogic/common/pre_submit_for_google changed from 3c244334ec6af6146a2c45fe3825b9115c56d026 to 2a789362d8d0d0968435a0fd6bbc57df3f76917d
+		[+] 2a78936 BT: ABS volume support is not informed to Audio sometimes. [1/1]
+		[+] 763778b TvInputHardwareManager: fix update AudioSink crash issue [1/1]
+
+	vendor/amlogic/common/prebuilt/libmedia changed from 3f87a4d9c8e4897100f7679e3b991b7fed590127 to aef5facb73e8bb166e069ac611face09ac390ab0
+		[+] aef5fac AmFFmpegExtractor: CB2 aac try again add limit count [1/1]
+
+	vendor/amlogic/common/prebuilt/libmediadrm/playready changed from 64cf557819de287c6f1f4650153a1a5e99174ae2 to 6e01963b086c6bd57e0738457febc8069ae2a01b
+		[+] 6e01963 widevine: CB0 Ta heap memory no release cause crash [1/2]
+		[+] de2b55a playready: CF0 HBBTV Playready Case Integrate [1/1]
+		[+] 7ef5532 Playready: CB1 Fix incorrect keyRequestType returned by getkeyrequest [1/1]
+		[+] 80e8b58 playready: CB1 anthem playready test has 8 failed items [1/1]
+		[+] 78d9b30 Playready: CF2 T963D5 Device bringup [1/1]
+
+	vendor/amlogic/reference changed from 7794681ea0ef7bc87fe433fbf09548cb905a8dfd to 2243a6c54e373bc130acb88e37591fa58a29e1fa
+		[+] 2243a6c prop: use standard api to getprop [1/1]
+		[+] bd3841c AM player: no subtitle show, ui about audio [1/1]
+		[+] d79eccc AM Player: seek and play fail [1/1]
+		[+] 9a3469a AM player: new audio type support [1/1]
+		[+] 92ed0ab mpeg: AzimuthProp [1/1]
+		[+] e79a598 tvsetting: mpeg system audio language and view seekbar [1/1]
+		[+] 9863d57 TvSettings: mpeg view init update [1/1]
+		[+] 68b78d4 TvSettings: add audio mepg-h [1/1]
+		[+] 2221a52 Tvsettings: hotspot CustomEditTextPreference [1/1]
+		[+] 73bf8bd audio: add vocal control for karaoke [1/3]
+		[+] 4ce547d TvSettings: softap [1/2]
+		[+] 54e455b TvSettings: color format 8bit [1/1]
+
+	vendor/amlogic/reference/aml_mp_sdk changed from d52bfcc3662bc2e1f2ba375313374036e407a7d5 to 9581b1368a17fe7ef292c921cc919504a4a805a7
+		[+] 9581b13 aml_mp_sdk: add mpegh audio codec type [1/1]
+
+	vendor/amlogic/reference/apps/AmStreamingInputService changed from 60a4c271c3ae0e7c6bf5e4f10a54a3b406d79167 to 930184c8f1dd66afd874dc5dfd16749b03484ccc
+		[+] 930184c tis: CF2 notify cas event to testapp [2/2]
+
+	vendor/amlogic/reference/external/DTVKit/dtvkit-amlogic changed from cfc6bf09cd94f6a78a7e8962fe5845b5d23248b0 to 2265f5649b102e28b59f4d226de17e33e1c5ff24
+		[+] 2265f56 dtvkit-amlogic: add mpegh for atsc [1/2]
+
+	vendor/amlogic/reference/external/DTVKit/releaseDTVKit changed from e02556c86b5a8fb0cf09bcd41275f55c2ce6884f to f20321d24e06678a26e3887ac6c83026c66db89a
+		[+] f20321d prebuilt: update prebuilts from Android_U_DRM_PATCHBUILD-11671 [1/1]
+
+	vendor/amlogic/reference/libdvr changed from bf806e9e5cc8262f743ad14a7e46fa66deb61ff5 to a157df6f10871c2786fabe106b936549151dbe68
+		[+] a157df6 aud: added audio type MPEGH [1/1]
+
+	vendor/amlogic/reference/subtitle changed from 877546a2c6c1130041581fd741208b69e75af166 to a12fcecb852db0a495680d9bbea9ba2d918d0d8b
+		[+] a12fcec subtitle: fix demux thread join cause abort exception [1/1]
+
+	vendor/amlogic/reference/tv changed from 769da42986566374edceb90ec638a7b6fc40a4ba to 749db9222326359212328ca7a3ede28f27aed8a4
+		[+] 749db92 cec: reset tv input device when boot [1/1]
+
