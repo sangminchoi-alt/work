@@ -81,7 +81,7 @@ extract_one_test() {
     # 원격 IP 자동 설정
     case "$MODEL" in
         "BFX-AT400")
-            [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.2.210" || REMOTE_IP="192.168.2.211"
+            [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.3.210" || REMOTE_IP="192.168.3.211"
             ;;
         "BFX-AT100")
             [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.2.201" || REMOTE_IP="192.168.2.203"
@@ -93,8 +93,8 @@ extract_one_test() {
 
     # USER 매핑
     case "$REMOTE_IP" in
-        192.168.2.210) USER="dev2-google10" ;;
-        192.168.2.211) USER="dev2-google11" ;;
+        192.168.3.210) USER="dev2-google10" ;;
+        192.168.3.211) USER="dev2-google11" ;;
         192.168.2.201) USER="dev2-google01" ;;
         192.168.2.203) USER="dev2-google03" ;;
         192.168.2.204) USER="dev2-google04" ;;
