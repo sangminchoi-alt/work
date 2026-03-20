@@ -67,16 +67,65 @@ fi
 ################################
 extract_one_test() {
     local TEST="$1"
+    local TEST_DIR=""
+    local RESULT_DIR=""
 
-    # 테스트별 디렉토리
+    # 테스트별 기본 디렉토리
     case "$TEST" in
-        "CTS"|"CTS-on-GSI") TEST_DIR="android-cts" ;;
-        "STS")             TEST_DIR="android-sts" ;;
-        "GTS")             TEST_DIR="android-gts" ;;
-        "VTS")             TEST_DIR="android-vts" ;;
-        "TVTS")            TEST_DIR="android-tvts" ;;
-        *) echo "❌ 알 수 없는 테스트: $TEST"; return ;;
+        "CTS")
+            TEST_DIR="android-cts"
+            RESULT_DIR="android-cts"
+            ;;
+        "CTS-on-GSI")
+            TEST_DIR="android-cts"
+            RESULT_DIR="android-cts"
+            ;;
+        "STS")
+            TEST_DIR="android-sts"
+            RESULT_DIR="android-sts"
+            ;;
+        "GTS")
+            TEST_DIR="android-gts"
+            RESULT_DIR="android-gts"
+            ;;
+        "VTS")
+            TEST_DIR="android-vts"
+            RESULT_DIR="android-vts"
+            ;;
+        "TVTS")
+            TEST_DIR="android-tvts"
+            RESULT_DIR="android-tvts"
+            ;;
+        *)
+            echo "❌ 알 수 없는 테스트: $TEST"
+            return
+            ;;
     esac
+
+    # UA300의 CTS-on-GSI만 예외
+    if [[ "$MODEL" == "BFX-UA300" && "$TEST" == "CTS-on-GSI" ]]; then
+        TEST_DIR="android-vts_cts_on_gsi"
+        RESULT_DIR="android-vts"
+    fi
+
+    ################################
+    # UA300 daily build 선택
+    ################################
+    BASE_DIR="latest"
+
+    if [[ "$MODEL" == "BFX-UA300" ]]; then
+        read -p "📦 daily build 를 사용하시겠습니까? (y/N): " USE_DAILY
+
+        USE_DAILY=${USE_DAILY:-N}
+
+        if [[ "$USE_DAILY" =~ ^[Yy]$ ]]; then
+            BASE_DIR="daily_build"
+            echo "✅ daily_build 사용"
+        else
+            BASE_DIR="latest"
+            echo "✅ latest 사용"
+        fi
+    fi
 
     # 원격 IP 자동 설정
     case "$MODEL" in
@@ -101,8 +150,8 @@ extract_one_test() {
         *) echo "❌ USER 매핑 실패"; return ;;
     esac
 
-    REMOTE_PATH="/home/${USER}/${TEST_DIR}/latest/${TEST_DIR}/results/${FOLDER_NAME}"
-    REMOTE_LOG_PATH="/home/${USER}/${TEST_DIR}/latest/${TEST_DIR}/logs/${FOLDER_NAME}"
+    REMOTE_PATH="/home/${USER}/${TEST_DIR}/${BASE_DIR}/${RESULT_DIR}/results/${FOLDER_NAME}"
+    REMOTE_LOG_PATH="/home/${USER}/${TEST_DIR}/${BASE_DIR}/${RESULT_DIR}/logs/${FOLDER_NAME}"
 
     DEST_PATH="$HOME/Downloads/${MODEL}/${TEST}_$(date +"%Y%m%d_%H%M")"
     mkdir -p "$DEST_PATH"
