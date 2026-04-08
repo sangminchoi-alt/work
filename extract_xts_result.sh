@@ -109,22 +109,20 @@ extract_one_test() {
     fi
 
     ################################
-    # UA300 daily build 선택
+    # daily build 선택
     ################################
     BASE_DIR="latest"
 
-    if [[ "$MODEL" == "BFX-UA300" ]]; then
-        read -p "📦 daily build 를 사용하시겠습니까? (y/N): " USE_DAILY
+    read -p "📦 daily build 를 사용하시겠습니까? (y/N): " USE_DAILY
 
-        USE_DAILY=${USE_DAILY:-N}
+    USE_DAILY=${USE_DAILY:-N}
 
-        if [[ "$USE_DAILY" =~ ^[Yy]$ ]]; then
-            BASE_DIR="daily_build"
-            echo "✅ daily_build 사용"
-        else
-            BASE_DIR="latest"
-            echo "✅ latest 사용"
-        fi
+    if [[ "$USE_DAILY" =~ ^[Yy]$ ]]; then
+        BASE_DIR="daily_build"
+        echo "✅ daily_build 사용"
+    else
+        BASE_DIR="latest"
+        echo "✅ latest 사용"
     fi
 
     # 원격 IP 자동 설정

@@ -5,13 +5,16 @@ export LANG=C
 
 COUNT=100
 KEYCODE=19
-INTERVAL=5
+INTERVAL=10
 
 # 📌 파일명: 현재 시간 기반
 START_TIME=$(date +"%Y%m%d_%H%M%S")
 MODEL_NAME=$(adb shell getprop ro.product.model)
 VERSION_NAME=$(adb shell cat system/usr/skb/version.txt)
 LOGFILE="./zapping_test_${MODEL_NAME}_${VERSION_NAME}_${START_TIME}.log"
+
+adb root
+adb shell "echo 0x02 > /sys/class/remote0/amremote0/protocol"
 
 echo "logcat 초기화"
 adb logcat -c
