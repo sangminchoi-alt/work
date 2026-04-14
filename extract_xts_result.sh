@@ -143,7 +143,7 @@ extract_one_test() {
         192.168.3.210) USER="dev2-google10" ;;
         192.168.3.211) USER="dev2-google11" ;;
         192.168.2.201) USER="dev2-google01" ;;
-        192.168.2.203) USER="dev2-google03" ;;
+        192.168.2.202) USER="dev2-google02" ;;
         192.168.2.204) USER="dev2-google04" ;;
         *) echo "❌ USER 매핑 실패"; return ;;
     esac
