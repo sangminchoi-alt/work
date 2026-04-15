@@ -131,7 +131,7 @@ extract_one_test() {
             [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.3.210" || REMOTE_IP="192.168.3.211"
             ;;
         "BFX-AT100")
-            [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.2.201" || REMOTE_IP="192.168.2.203"
+            [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.2.201" || REMOTE_IP="192.168.2.202"
             ;;
         "BFX-UA300")
             REMOTE_IP="192.168.2.204"
