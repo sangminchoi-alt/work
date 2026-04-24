@@ -394,7 +394,8 @@ check_hdmi_status() {
 ZIP_FILE="$1"
 
 if [[ -n "$ZIP_FILE" && -f "$ZIP_FILE" ]]; then
-    WORK_DIR=$(mktemp -d)
+    WORK_DIR="${ZIP_FILE%.zip}"
+    mkdir -p "$WORK_DIR"
     unzip -q "$ZIP_FILE" -d "$WORK_DIR"
     cd "$WORK_DIR"
 fi
