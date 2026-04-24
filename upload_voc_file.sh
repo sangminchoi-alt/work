@@ -34,6 +34,10 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+~/Downloads/work/voc_analysis.sh ${FILE_PATH}
+
+rm -rf ${FILE_PATH}
+
 DOWNLOAD_URL="${HTTP_SERVER}${REMOTE_DIR}/${FILE_NAME}"
 
 # 클립보드 복사
@@ -54,5 +58,3 @@ echo ""
 echo "Upload complete"
 echo "$DOWNLOAD_URL"
 echo "$CLIP_MSG"
-
-rm -rf ${FILE_PATH}
