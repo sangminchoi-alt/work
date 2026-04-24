@@ -57,8 +57,8 @@ display_tv_information() {
     local model_name=$(echo "$input_xml" | sed -n 's/.*model_name="\([^"]*\)".*/\1/p')
     local manufacturer_id=$(echo "$input_xml" | sed -n 's/.*manufacturer_id="\([^"]*\)".*/\1/p')
     local manufacture_date=$(echo "$input_xml" | sed -n 's/.*manufacture_date="\([^"]*\)".*/\1/p')
-    local edid_hex=$(xml sel -t -v //edid_hex -nl hdmi-edid.xml | tr -d '[:space:]')
-    local hdmi_port=$(echo "$edid_hex" | sed -n 's/.*030c00\([0-9]\).*/\1/p')
+    local edid_hex=$(xml sel -t -v //edid_hex -nl hdmi-edid.xml | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+    local hdmi_port=$(echo "$edid_hex" | sed -n 's/.*030c00\([0-9a-f]\).*/\1/p')
     
     echo "======================================================="
     echo -e "TV 제조사\t: $manufacturer_id"
