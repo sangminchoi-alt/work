@@ -5,12 +5,13 @@ INTERVAL=600  # 10분 (600초)
 while true
 do
     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-    FILENAME="logcat_${TIMESTAMP}.txt"
+    LOGCAT_FILE="logcat_${TIMESTAMP}.txt"
+    DMESG_FILE="dmesg_${TIMESTAMP}.txt"
 
-    echo "[$(date)] Start capturing to $FILENAME"
+    echo "[$(date)] Start capturing to $LOGCAT_FILE and $DMESG_FILE"
 
     # 10분 동안 logcat 수집
-    adb logcat > "$FILENAME" &
+    adb logcat > "$LOGCAT_FILE" &
     LOGCAT_PID=$!
 
     sleep $INTERVAL
@@ -19,5 +20,8 @@ do
     kill $LOGCAT_PID
     wait $LOGCAT_PID 2>/dev/null
 
-    echo "[$(date)] Saved $FILENAME"
+    # dmesg 수집
+    adb shell dmesg > "$DMESG_FILE"
+
+    echo "[$(date)] Saved $LOGCAT_FILE and $DMESG_FILE"
 done
