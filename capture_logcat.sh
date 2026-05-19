@@ -2,6 +2,8 @@
 
 INTERVAL=600  # 10분 (600초)
 
+adb root
+
 while true
 do
     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
