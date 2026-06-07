@@ -353,6 +353,20 @@ check_R4001_createTrack() {
     echo ""   
 }
 
+check_hdcp_reauth() {
+    local HDCP_REAUTH=$(grep -rn 'hdcptx: hdcptx2: reauth req from ds device' dmesg.txt)
+
+    if [ -z "$HDCP_REAUTH" ]; then return; fi
+
+    COLOR=${COLOR_RED};
+    echo "======================================================="
+    echo -e "\033[${COLOR}mHDCP2 재인증 요청 감지 (화면 깜박임 원인 가능성)\033[0m"
+    echo ""
+    echo -e "\033[${COLOR}m${HDCP_REAUTH}\033[0m"
+    echo "======================================================="
+    echo ""
+}
+
 check_ISET_service_is_null() {
     local ISET_SERVICE_IS_NULL=$(grep -rn 'service is null' merged_main.log)
 
@@ -454,6 +468,7 @@ check_memtrack_page_allocation_failure
 check_pushAmpBD_failed
 check_VideoReleaseThread
 check_ISET_service_is_null
+check_hdcp_reauth
 
 display_keycode_history
 
