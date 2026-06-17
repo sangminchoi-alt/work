@@ -5,8 +5,8 @@
 
 SLACK_WEBHOOK="${SLACK_WEBHOOK:?환경변수 SLACK_WEBHOOK을 설정하세요}"
 TARGET_LOG="AVP_DECODER_ERROR_DECODE_ERROR"
-MONITOR_DURATION=1800  # 30분 (초) — 미발생 시 루프 재시작 기준
-POST_DETECT_DELAY=180  # 3분 (초) — 감지 후 대기 시간
+MONITOR_DURATION=1200  # 20분 (초) — 미발생 시 루프 재시작 기준
+POST_DETECT_DELAY=60  # 1분 (초) — 감지 후 대기 시간
 
 echo "=============================="
 echo " AVP Decoder Error 모니터 시작"
@@ -14,10 +14,23 @@ echo "=============================="
 
 # ADB root 권한 획득
 echo "[INFO] adb root 실행 중..."
-adb root
+adb -s $1 root
 sleep 2
 
-adb shell "echo 0x02 > /sys/class/remote0/amremote0/protocol"
+adb -s $1 shell "setenforce 0;mkdir /data/tmp;chmod 777 /data/tmp"
+adb -s $1 shell "echo 0x02 > /sys/class/remote0/amremote0/protocol"
+
+adb -s $1 shell "setprop vendor.media.mediahal.mediasync.debug_level 4"
+adb -s $1 shell "setprop vendor.mediahal.loglevels 11"
+adb -s $1 shell "setprop vendor.amtsplayer.debuglevel 3"
+adb -s $1 shell "setprop vendor.media.mediahal.tsplayer.renderdebug 3"
+adb -s $1 shell "setprop vendor.media.mediahal.tsplayer.display_debuglevel 3"
+adb -s $1 shell "echo 0 > /proc/sys/kernel/printk"
+adb -s $1 shell "echo 0x60006807 > /sys/module/amvdec_h265/parameters/debug"
+adb -s $1 shell "echo 0x60006807 > /sys/module/amvdec_h265_v4l/parameters/debug"
+adb -s $1 shell "echo 0xff > /sys/module/amvdec_mh264/parameters/h264_debug_flag"
+adb -s $1 shell "echo 0xff > /sys/module/amvdec_mh264_v4l/parameters/h264_debug_flag"
+adb -s $1 shell "echo 1 > /sys/module/amlogic_dvb_demux/parameters/debug_ts_output"
 
 while true; do
     echo ""
@@ -25,25 +38,25 @@ while true; do
 
     # --- 초기화 ---
     echo "[STEP 1] dumpts=0 설정 및 임시 파일 삭제"
-    adb shell setprop vendor.amtsplayer.dumpts 0
-    adb shell rm -rf /data/tmp/*
-    adb shell input keyevent KEYCODE_0
+    adb -s $1 shell setprop vendor.amtsplayer.dumpts 0
+    adb -s $1 shell rm -rf /data/tmp/*
+    adb -s $1 shell input keyevent KEYCODE_0
     echo "[WAIT] 10초 대기..."
     sleep 10
 
     # --- 채널 변경 ---
     echo "[STEP 2] dumpts=1 설정 및 채널 5 입력"
-    adb shell setprop vendor.amtsplayer.dumpts 1
-    adb shell input keyevent KEYCODE_5
+    adb -s $1 shell setprop vendor.amtsplayer.dumpts 1
+    adb -s $1 shell input keyevent KEYCODE_5
     echo "[WAIT] 10초 대기..."
     sleep 10
 
     # --- 로그 모니터링 ---
     echo "[MONITOR] logcat 모니터링 시작 (최대 ${MONITOR_DURATION}초)..."
 
-    adb logcat -c
+    adb -s $1 logcat -c
     TMP_LOG=$(mktemp ./avp_logcat_XXXXXXXX)
-    adb logcat > "$TMP_LOG" &
+    adb -s $1 logcat > "$TMP_LOG" &
     LOGCAT_PID=$!
 
     DETECTED=false
@@ -89,12 +102,12 @@ while true; do
 
         # 3) /data/tmp/ 내 덤프 파일 pull
         echo "[LOG] /data/tmp/ 덤프 파일 수집 중..."
-        adb pull /data/tmp/ "${LOG_DIR}/device_tmp/" 2>/dev/null \
+        adb -s $1 pull /data/tmp/ "${LOG_DIR}/device_tmp/" 2>/dev/null \
             && echo "[LOG] /data/tmp/ pull 완료" \
             || echo "[WARN] /data/tmp/ pull 실패 또는 파일 없음"
 
         # 4) 감지 시점 이후 추가 로그 덤프
-        adb logcat -d > "${LOG_DIR}/logcat_dump_at_detect.txt" 2>/dev/null
+        adb -s $1 logcat -d > "${LOG_DIR}/logcat_dump_at_detect.txt" 2>/dev/null
 
         # 5) 임시 파일 삭제
         rm -f "$TMP_LOG"
@@ -113,13 +126,24 @@ while true; do
 
         # --- dumpts=0 설정 ---
         echo "[STEP] dumpts=0 설정"
-        adb shell setprop vendor.amtsplayer.dumpts 0
+        adb -s $1 shell setprop vendor.amtsplayer.dumpts 0
 
         echo "[EXIT] 스크립트 종료"
         exit 0
     else
-        rm -f "$TMP_LOG"
+        SAVED_LOG_DIR="./avp_logs_no_error"
+        mkdir -p "$SAVED_LOG_DIR"
+        SAVED_LOG="${SAVED_LOG_DIR}/logcat_$(date '+%Y%m%d_%H%M%S').txt"
+        mv "$TMP_LOG" "$SAVED_LOG"
+        echo "[LOG] 미발생 로그 저장됨: ${SAVED_LOG}"
         echo "[INFO] ${MONITOR_DURATION}초 동안 에러 미발생 — 루프 재시작"
+
+        echo "[ACTION] Slack 메시지 전송 중..."
+        MESSAGE="AVP_DECODER_ERROR_DECODE_ERROR 미발생"
+        curl -s -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"${MESSAGE}\"}" \
+            "$SLACK_WEBHOOK"
+        echo "[OK] Slack 전송 완료"
     fi
 
 done
