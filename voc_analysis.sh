@@ -4,7 +4,7 @@ COLOR_RED="1;31"
 COLOR_GREEN="1;32"
 
 SUBLIME_TEXT="/Users/tonight0210/Downloads/subl"
-ANDROID_KEYCODE_STRINGS=$(grep 'public static final int KEYCODE' ~/Library/Mobile\ Documents/com~apple~CloudDocs/Work/common/KeyEvent.java | sed 's/public static final int //g')
+ANDROID_KEYCODE_STRINGS=$(grep 'public static final int KEYCODE' ~/Downloads/work/KeyEvent.java | sed 's/public static final int //g')
 
 get_android_property_by_key() {
     local file_path="getprop.txt"
@@ -241,22 +241,29 @@ get_keycode_string() {
 }
 
 display_keycode_history() {
-    local history=$(grep -rn 'onKeyDown keyCode' merged_main.log)
+    local history_onkey=$(grep -n 'onKeyDown keyCode' merged_main.log)
+    local history_stb=$(grep -n 'STBGlobalkeyBroadCastReceiver.*onReceive.*keyCode.*ACTION_UP' merged_main.log)
+    local history=$(printf '%s\n%s\n' "$history_onkey" "$history_stb" | grep -v '^$' | sort -t: -k1,1n)
     if [ -z "$history" ]; then return; fi
     echo "======================================================="
     echo -e "Keycode History"
     echo ""
-    
+
     IFS=$'\n' log_entries=("${(@f)history}")
     for entry in "${log_entries[@]}"; do
         timestamp=$(echo "$entry" | grep -oE '[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}')
-        keycode=$(echo "$entry" | awk -F 'keyCode = ' '{print $2}' | awk '{print $1}' | tr -cd '0-9')
+
+        if echo "$entry" | grep -q 'STBGlobalkeyBroadCastReceiver'; then
+            keycode=$(echo "$entry" | awk -F 'keyCode : ' '{print $2}' | awk -F',' '{print $1}' | tr -cd '0-9')
+        else
+            keycode=$(echo "$entry" | awk -F 'keyCode = ' '{print $2}' | awk '{print $1}' | tr -cd '0-9')
+        fi
 
         echo -e "$timestamp\t$keycode\t$(get_keycode_string $keycode)"
     done
 
     echo "======================================================="
-    echo "" 
+    echo ""
 }
 
 check_video_freezing() {
@@ -372,10 +379,32 @@ check_invalid_custom() {
 
     if [ -z "$INVALID_CUSTOM" ]; then return; fi
 
+    typeset -A CUSTOM_CODE_MAP
+    CUSTOM_CODE_MAP=(
+        [0xf708bf40]="제조사: TCL / 키: POWER"
+        [0x33ccfb04]="제조사: LG / 키: HDMI 2"
+        [0x31cefb04]="제조사: LG / 키: HDMI 1"
+        [0x3ac5fb04]="제조사: LG / 키: TV OFF"
+        [0x3bc4fb04]="제조사: LG / 키: TV ON"
+        [0xf708fb04]="제조사: LG / 키: POWER"
+    )
+
     echo "======================================================="
     echo -e "invalid custom 감지"
     echo ""
-    echo -e "${INVALID_CUSTOM}"
+
+    IFS=$'\n' lines=("${(@f)INVALID_CUSTOM}")
+    for line in "${lines[@]}"; do
+        local annotated="$line"
+        for code in "${(@k)CUSTOM_CODE_MAP}"; do
+            if echo "$line" | grep -q "$code"; then
+                annotated="${line} [${CUSTOM_CODE_MAP[$code]}]"
+                break
+            fi
+        done
+        echo -e "$annotated"
+    done
+
     echo "======================================================="
     echo ""
 }
