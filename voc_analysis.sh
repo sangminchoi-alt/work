@@ -367,6 +367,19 @@ check_hdcp_reauth() {
     echo ""
 }
 
+check_invalid_custom() {
+    local INVALID_CUSTOM=$(grep -n 'invalid custom' dmesg.txt)
+
+    if [ -z "$INVALID_CUSTOM" ]; then return; fi
+
+    echo "======================================================="
+    echo -e "invalid custom 감지"
+    echo ""
+    echo -e "${INVALID_CUSTOM}"
+    echo "======================================================="
+    echo ""
+}
+
 check_ISET_service_is_null() {
     local ISET_SERVICE_IS_NULL=$(grep -rn 'service is null' merged_main.log)
 
@@ -471,5 +484,6 @@ check_ISET_service_is_null
 check_hdcp_reauth
 
 display_keycode_history
+check_invalid_custom
 
 open_tombstone_files
