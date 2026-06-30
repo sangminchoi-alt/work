@@ -360,18 +360,21 @@ check_R4001_createTrack() {
     echo ""   
 }
 
-display_hpd_events() {
-    local HPD_EVENTS=$(grep -rn 'HPD LOW\|HPD HIGH' dmesg.txt)
+display_hdmi_signal_events() {
+    local HPD_EVENTS=$(grep -n 'HPD LOW\|HPD HIGH' dmesg.txt)
+    local WAKEUP_SLEEP_EVENTS=$(grep -n 'WakeupServiceImpl: wakeup() called\|STBAPIManager: sleep() called' merged_main.log)
 
-    if [ -z "$HPD_EVENTS" ]; then return; fi
+    if [ -z "$HPD_EVENTS" ] && [ -z "$WAKEUP_SLEEP_EVENTS" ]; then return; fi
+
+    local ALL_EVENTS=$(printf '%s\n%s\n' "$HPD_EVENTS" "$WAKEUP_SLEEP_EVENTS" | grep -v '^$' | sort -t: -k1,1n)
 
     echo "======================================================="
-    echo "HPD 이벤트 히스토리"
+    echo "STB 입력신호없음 관련 이벤트"
     echo ""
 
-    IFS=$'\n' lines=("${(@f)HPD_EVENTS}")
+    IFS=$'\n' lines=("${(@f)ALL_EVENTS}")
     for line in "${lines[@]}"; do
-        if echo "$line" | grep -q 'HPD LOW'; then
+        if echo "$line" | grep -q 'HPD LOW\|sleep() called'; then
             COLOR=${COLOR_RED}
         else
             COLOR=${COLOR_GREEN}
@@ -517,7 +520,7 @@ display_tv_power_control_property
 display_tv_information
 display_rcu_iset_information
 check_hdmi_status
-display_hpd_events
+display_hdmi_signal_events
 display_rcu_information
 display_audio_output_path
 display_audio_delay
