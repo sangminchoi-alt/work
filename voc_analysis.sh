@@ -362,7 +362,7 @@ check_R4001_createTrack() {
 
 display_hdmi_signal_events() {
     local HPD_EVENTS=$(grep -n 'HPD LOW\|HPD HIGH' dmesg.txt)
-    local WAKEUP_SLEEP_EVENTS=$(grep -n 'WakeupServiceImpl: wakeup() called\|STBAPIManager: sleep() called\|checkBtvKeyCode outKeyCode : 26' merged_main.log)
+    local WAKEUP_SLEEP_EVENTS=$(grep -n 'WakeupServiceImpl: wakeup() called\|STBAPIManager: sleep() called\|STBGlobalkeyBroadCastReceiver.*keyCode : 26.*ACTION_UP' merged_main.log)
 
     if [ -z "$HPD_EVENTS" ] && [ -z "$WAKEUP_SLEEP_EVENTS" ]; then return; fi
 
@@ -376,7 +376,7 @@ display_hdmi_signal_events() {
     for line in "${lines[@]}"; do
         if echo "$line" | grep -q 'HPD LOW\|sleep() called'; then
             COLOR=${COLOR_RED}
-        elif echo "$line" | grep -q 'checkBtvKeyCode outKeyCode : 26'; then
+        elif echo "$line" | grep -q 'STBGlobalkeyBroadCastReceiver.*keyCode : 26.*ACTION_UP'; then
             COLOR="0"
         else
             COLOR=${COLOR_GREEN}
