@@ -366,7 +366,9 @@ display_hdmi_signal_events() {
 
     if [ -z "$HPD_EVENTS" ] && [ -z "$WAKEUP_SLEEP_EVENTS" ]; then return; fi
 
-    local ALL_EVENTS=$(printf '%s\n%s\n' "$HPD_EVENTS" "$WAKEUP_SLEEP_EVENTS" | grep -v '^$' | sort -t: -k1,1n)
+    local ALL_EVENTS=$(printf '%s\n%s\n' "$HPD_EVENTS" "$WAKEUP_SLEEP_EVENTS" | grep -v '^$' | \
+        sed -E 's/.*([0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+).*/\1 &/' | \
+        sort | sed 's/^[0-9-]* [0-9:.]* //')
 
     echo "======================================================="
     echo "STB 입력신호없음 관련 이벤트"
