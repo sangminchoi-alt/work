@@ -242,7 +242,7 @@ get_keycode_string() {
 
 display_keycode_history() {
     local history_onkey=$(grep -n 'onKeyDown keyCode' merged_main.log)
-    local history_stb=$(grep -n 'STBGlobalkeyBroadCastReceiver.*onReceive.*keyCode.*ACTION_UP' merged_main.log)
+    local history_stb=$(grep -n 'STBGlobalkeyBroadCastReceiver.*onReceive.*keyCode.*ACTION_DOWN' merged_main.log)
     local history=$(printf '%s\n%s\n' "$history_onkey" "$history_stb" | grep -v '^$' | sort -t: -k1,1n)
     if [ -z "$history" ]; then return; fi
     echo "======================================================="
@@ -362,7 +362,7 @@ check_R4001_createTrack() {
 
 display_hdmi_signal_events() {
     local HPD_EVENTS=$(grep -n 'HPD LOW\|HPD HIGH' dmesg.txt)
-    local WAKEUP_SLEEP_EVENTS=$(grep -n 'WakeupServiceImpl: wakeup() called\|STBAPIManager: sleep() called\|STBGlobalkeyBroadCastReceiver.*keyCode : 26.*ACTION_UP' merged_main.log)
+    local WAKEUP_SLEEP_EVENTS=$(grep -n 'WakeupServiceImpl: wakeup() called\|STBAPIManager: sleep() called\|STBGlobalkeyBroadCastReceiver.*keyCode : 26.*ACTION_DOWN' merged_main.log)
 
     if [ -z "$HPD_EVENTS" ] && [ -z "$WAKEUP_SLEEP_EVENTS" ]; then return; fi
 
@@ -376,7 +376,7 @@ display_hdmi_signal_events() {
     for line in "${lines[@]}"; do
         if echo "$line" | grep -q 'HPD LOW\|sleep() called'; then
             COLOR=${COLOR_RED}
-        elif echo "$line" | grep -q 'STBGlobalkeyBroadCastReceiver.*keyCode : 26.*ACTION_UP'; then
+        elif echo "$line" | grep -q 'STBGlobalkeyBroadCastReceiver.*keyCode : 26.*ACTION_DOWN'; then
             COLOR="0"
         else
             COLOR=${COLOR_GREEN}
