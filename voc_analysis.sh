@@ -360,6 +360,29 @@ check_R4001_createTrack() {
     echo ""   
 }
 
+display_hpd_events() {
+    local HPD_EVENTS=$(grep -rn 'HPD LOW\|HPD HIGH' dmesg.txt)
+
+    if [ -z "$HPD_EVENTS" ]; then return; fi
+
+    echo "======================================================="
+    echo "HPD 이벤트 히스토리"
+    echo ""
+
+    IFS=$'\n' lines=("${(@f)HPD_EVENTS}")
+    for line in "${lines[@]}"; do
+        if echo "$line" | grep -q 'HPD LOW'; then
+            COLOR=${COLOR_RED}
+        else
+            COLOR=${COLOR_GREEN}
+        fi
+        echo -e "\033[${COLOR}m${line}\033[0m"
+    done
+
+    echo "======================================================="
+    echo ""
+}
+
 check_hdcp_reauth() {
     local HDCP_REAUTH=$(grep -rn 'hdcptx: hdcptx2: reauth req from ds device' dmesg.txt)
 
@@ -494,6 +517,7 @@ display_tv_power_control_property
 display_tv_information
 display_rcu_iset_information
 check_hdmi_status
+display_hpd_events
 display_rcu_information
 display_audio_output_path
 display_audio_delay
