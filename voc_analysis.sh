@@ -390,6 +390,20 @@ display_hdmi_signal_events() {
     echo ""
 }
 
+check_avp_decode_error() {
+    local AVP_DECODE_ERROR=$(grep -rn 'AVP_DECODER_ERROR_DECODE_ERROR' merged_main.log)
+
+    if [ -z "$AVP_DECODE_ERROR" ]; then return; fi
+
+    COLOR=${COLOR_RED};
+    echo "======================================================="
+    echo -e "\033[${COLOR}mAVP_DECODER_ERROR_DECODE_ERROR 감지\033[0m"
+    echo ""
+    echo -e "\033[${COLOR}m${AVP_DECODE_ERROR}\033[0m"
+    echo "======================================================="
+    echo ""
+}
+
 check_hdcp_reauth() {
     local HDCP_REAUTH=$(grep -rn 'hdcptx: hdcptx2: reauth req from ds device' dmesg.txt)
 
@@ -542,6 +556,7 @@ check_pushAmpBD_failed
 check_VideoReleaseThread
 check_ISET_service_is_null
 check_hdcp_reauth
+check_avp_decode_error
 
 display_keycode_history
 check_invalid_custom
