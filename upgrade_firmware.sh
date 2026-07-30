@@ -80,6 +80,16 @@ fi
 
 echo "==> 모델 폴더 확인: ${MODEL_DIR}"
 
+# update.zip 안의 META-INF/com/android/metadata에 있는 pre-device 값이 이 펌웨어의 대상 모델명이다.
+# 예) pre-device=BFX-AT400
+PRE_DEVICE="$(unzip -p "$UPDATE_ZIP" META-INF/com/android/metadata 2>/dev/null | grep '^pre-device=' | head -n1 | cut -d'=' -f2- | tr -d '\r\n')"
+
+if [ -n "$PRE_DEVICE" ]; then
+    echo "==> 이 펌웨어의 대상 모델(pre-device): ${PRE_DEVICE}"
+else
+    echo "경고: update.zip metadata에서 대상 모델(pre-device)을 확인하지 못했습니다. 모델 일치 여부를 검사하지 않습니다." >&2
+fi
+
 prompt_connect_new_device() {
     local ip
     read -rp "연결할 장치의 IP 주소를 입력하세요 (예: 192.168.0.100:5555): " ip
@@ -115,7 +125,7 @@ run_upgrade() {
 
 # 화살표(↑/↓) + Enter로 고르는 메뉴.
 # 호출하는 쪽에서 local 배열 `options`를 준비해두면 되고,
-# 결과는 ARROW_MENU_RESULT 변수에 담긴다.
+# 결과는 ARROW_MENU_RESULT(선택된 문자열), ARROW_MENU_INDEX(선택된 인덱스)에 담긴다.
 # (bash는 동적 스코프라 이 함수에서도 호출측의 local options가 그대로 보인다)
 arrow_menu() {
     local count=${#options[@]}
@@ -150,6 +160,21 @@ arrow_menu() {
     tput cnorm 2>/dev/null
 
     ARROW_MENU_RESULT="${options[$sel]}"
+    ARROW_MENU_INDEX="$sel"
+}
+
+# adb 장치의 ro.product.model 값을 읽는다.
+get_device_model() {
+    local serial="$1"
+    adb -s "$serial" shell getprop ro.product.model 2>/dev/null | tr -d '\r\n'
+}
+
+to_upper() {
+    echo "$1" | tr '[:lower:]' '[:upper:]'
+}
+
+model_matches() {
+    [ "$(to_upper "$1")" = "$(to_upper "$2")" ]
 }
 
 select_and_upgrade() {
@@ -167,25 +192,44 @@ select_and_upgrade() {
         fi
 
         echo ""
+        echo "모델명 확인 중..."
+        local models=()
+        local labels=()
+        for serial in "${devices[@]}"; do
+            local model
+            model="$(get_device_model "$serial")"
+            models+=("$model")
+
+            if [ -z "$model" ]; then
+                labels+=("$serial")
+            elif [ -n "$PRE_DEVICE" ] && ! model_matches "$model" "$PRE_DEVICE"; then
+                labels+=("(${model}) ${serial}  [모델 불일치: ${PRE_DEVICE} 전용 펌웨어]")
+            else
+                labels+=("(${model}) ${serial}")
+            fi
+        done
+
+        echo ""
         echo "연결된 adb 장치 목록: (↑/↓ 이동, Enter 선택)"
-        local options=("${devices[@]}" "새로운 장치 연결" "업그레이드하지 않고 종료")
+        local options=("${labels[@]}" "새로운 장치 연결" "업그레이드하지 않고 종료")
         arrow_menu
-        local opt="$ARROW_MENU_RESULT"
+        local idx="$ARROW_MENU_INDEX"
         echo ""
 
-        case "$opt" in
-            "새로운 장치 연결")
-                prompt_connect_new_device
-                ;;
-            "업그레이드하지 않고 종료")
-                echo "업그레이드를 취소합니다."
-                exit 0
-                ;;
-            *)
-                run_upgrade "$opt"
-                return
-                ;;
-        esac
+        if [ "$idx" -lt "${#devices[@]}" ]; then
+            local model="${models[$idx]}"
+            if [ -n "$PRE_DEVICE" ] && [ -n "$model" ] && ! model_matches "$model" "$PRE_DEVICE"; then
+                echo "에러: 이 펌웨어는 '${PRE_DEVICE}' 전용입니다. 선택한 장치의 모델은 '${model}' 이라 업그레이드를 진행하지 않습니다." >&2
+                continue
+            fi
+            run_upgrade "${devices[$idx]}"
+            return
+        elif [ "$idx" -eq "${#devices[@]}" ]; then
+            prompt_connect_new_device
+        else
+            echo "업그레이드를 취소합니다."
+            exit 0
+        fi
     done
 }
 
