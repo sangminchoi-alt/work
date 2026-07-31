@@ -90,6 +90,16 @@ else
     echo "경고: update.zip metadata에서 대상 모델(pre-device)을 확인하지 못했습니다. 모델 일치 여부를 검사하지 않습니다." >&2
 fi
 
+# post-build-incremental 값(예: 24.561.130-20260701)에서 날짜 부분을 뺀 앞쪽이 펌웨어 버전(ro.vendor.fw.version과 동일한 형식)이다.
+TARGET_FW_VERSION="$(unzip -p "$UPDATE_ZIP" META-INF/com/android/metadata 2>/dev/null | grep '^post-build-incremental=' | head -n1 | cut -d'=' -f2- | tr -d '\r\n')"
+TARGET_FW_VERSION="${TARGET_FW_VERSION%%-*}"
+
+if [ -n "$TARGET_FW_VERSION" ]; then
+    echo "==> 이 펌웨어의 버전: ${TARGET_FW_VERSION}"
+else
+    echo "경고: update.zip metadata에서 펌웨어 버전(post-build-incremental)을 확인하지 못했습니다." >&2
+fi
+
 prompt_connect_new_device() {
     local ip
     read -rp "연결할 장치의 IP 주소를 입력하세요 (예: 192.168.0.100:5555): " ip
@@ -116,6 +126,7 @@ run_upgrade() {
 
     echo "==> recovery command 설정"
     adb -s "$serial" shell 'echo "--update_package=/cache/update.zip" > /cache/recovery/command'
+    adb -s "$serial" shell sync
 
     echo "==> adb reboot recovery"
     adb -s "$serial" reboot recovery
@@ -169,6 +180,12 @@ get_device_model() {
     adb -s "$serial" shell getprop ro.product.model 2>/dev/null | tr -d '\r\n'
 }
 
+# adb 장치의 현재 펌웨어 버전(ro.vendor.fw.version) 값을 읽는다.
+get_device_fw_version() {
+    local serial="$1"
+    adb -s "$serial" shell getprop ro.vendor.fw.version 2>/dev/null | tr -d '\r\n'
+}
+
 to_upper() {
     echo "$1" | tr '[:lower:]' '[:upper:]'
 }
@@ -196,16 +213,32 @@ select_and_upgrade() {
         local models=()
         local labels=()
         for serial in "${devices[@]}"; do
-            local model
+            local model fw_version version_part label mismatch
             model="$(get_device_model "$serial")"
+            fw_version="$(get_device_fw_version "$serial")"
             models+=("$model")
+
+            mismatch=0
+            [ -n "$model" ] && [ -n "$PRE_DEVICE" ] && ! model_matches "$model" "$PRE_DEVICE" && mismatch=1
+
+            if [ "$mismatch" -eq 1 ]; then
+                version_part=""
+            elif [ -n "$TARGET_FW_VERSION" ]; then
+                version_part=" (${fw_version:-?} -> ${TARGET_FW_VERSION})"
+            elif [ -n "$fw_version" ]; then
+                version_part=" (${fw_version})"
+            else
+                version_part=""
+            fi
 
             if [ -z "$model" ]; then
                 labels+=("$serial")
-            elif [ -n "$PRE_DEVICE" ] && ! model_matches "$model" "$PRE_DEVICE"; then
-                labels+=("(${model}) ${serial}  [모델 불일치: ${PRE_DEVICE} 전용 펌웨어]")
             else
-                labels+=("(${model}) ${serial}")
+                label="(${model})${version_part} ${serial}"
+                if [ "$mismatch" -eq 1 ]; then
+                    label="${label}  [모델 불일치: ${PRE_DEVICE} 전용 펌웨어]"
+                fi
+                labels+=("$label")
             fi
         done
 
