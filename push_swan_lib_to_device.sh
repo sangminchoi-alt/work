@@ -1,14 +1,17 @@
 #!/bin/bash
 #
 # 빌드 서버에서 .so 파일을 받아 기기에 push하고 재부팅하는 스크립트
+# .apk 파일명을 넘기면 out/target/product/<PRODUCT>/system/app/<앱이름>/ 에서
+# 받아 adb install로 설치한다.
 #
 # 사용법:
-#   ./push_swan_lib_to_device.sh [옵션] <라이브러리파일명>
+#   ./push_swan_lib_to_device.sh [옵션] <라이브러리파일명 | apk파일명>
 #
 # 예시:
 #   ./push_swan_lib_to_device.sh libbtvhal_setting.so
 #   ./push_swan_lib_to_device.sh -p BFX-UA300_OS10 -o BFX-UA300 libfoo.so
 #   ./push_swan_lib_to_device.sh -r 64 libbar.so   # lib64로 push
+#   ./push_swan_lib_to_device.sh A2dpDeviceService.apk
 #
 set -e
 
@@ -23,7 +26,7 @@ DO_REBOOT=1
 
 usage() {
     cat <<EOF
-사용법: $(basename "$0") [옵션] <so파일명>
+사용법: $(basename "$0") [옵션] <so파일명 | apk파일명>
 
 옵션:
   -p <project_dir>   원격 프로젝트 디렉토리명 (기본: $PROJECT_DIR)
@@ -31,6 +34,9 @@ usage() {
   -r <32|64>          push할 lib 경로 (lib 또는 lib64, 기본: lib)
   -n                   push 후 reboot 하지 않음
   -h                   도움말 출력
+
+apk파일명을 넘기면 out/target/product/<product>/system/app/<앱이름>/<앱이름>.apk 를
+받아서 adb install 로 설치한다 (push/reboot 하지 않음).
 EOF
     exit 1
 }
@@ -53,6 +59,21 @@ if [ $# -lt 1 ]; then
 fi
 
 LIB_NAME="$1"
+
+if [[ "$LIB_NAME" == *.apk ]]; then
+    APK_BASENAME="${LIB_NAME%.apk}"
+    REMOTE_PATH="/home/${SSH_USER}/project/${PROJECT_DIR}/out/target/product/${PRODUCT}/system/app/${APK_BASENAME}/${LIB_NAME}"
+    LOCAL_FILE="./${LIB_NAME}"
+
+    echo "==> scp: ${SSH_USER}@${SSH_HOST}:${REMOTE_PATH}"
+    scp -P "$SSH_PORT" "${SSH_USER}@${SSH_HOST}:${REMOTE_PATH}" "$LOCAL_FILE"
+
+    echo "==> adb install: ${LOCAL_FILE}"
+    adb install -r "$LOCAL_FILE"
+
+    exit 0
+fi
+
 LIB_DIR="lib${LIB_ARCH}"
 
 REMOTE_PATH="/home/${SSH_USER}/project/${PROJECT_DIR}/out/target/product/${PRODUCT}/symbols/vendor/${LIB_DIR}/${LIB_NAME}"
