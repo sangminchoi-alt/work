@@ -3,7 +3,10 @@
 # 서버의 펌웨어 zip을 받아 adb로 기기에 업그레이드하는 스크립트
 #
 # 동작:
-#   1. 주어진 주소(http/https/ftp)에서 wget으로 펌웨어 zip 다운로드 (계정: alt / alt1234)
+#   1. 펌웨어 zip을 받아온다.
+#      - http/https/ftp 주소가 주어지면 wget으로 다운로드 (계정: alt / alt1234)
+#      - 절대경로(예: /home/smchoi/.../usb_bfx-ua300_V19.561.103_SD.zip)가 주어지면
+#        scp로 원격 빌드 서버에서 다운로드 (모델별 접속정보는 아래 SCP_MODELS/SCP_HOSTS/SCP_PORTS 참고)
 #   2. 압축 해제 -> 안의 최상위 폴더명(모델별로 다름, 예: usb_bfx-at400)을 자동 인식
 #   3. adb 장치 목록을 보여주고 키보드로 업그레이드할 장치 선택
 #      - "새로운 장치 연결": IP 입력 -> adb connect -> 장치 선택 메뉴로 복귀
@@ -12,31 +15,68 @@
 #   4. 선택한 장치에 adb root / push / recovery command 설정 / reboot recovery 수행
 #
 # 사용법:
-#   ./upgrade_firmware.sh <다운로드주소>
+#   ./upgrade_firmware.sh <다운로드주소 또는 원격 서버의 절대경로>
 #
 # 예시:
 #   ./upgrade_firmware.sh http://altserver01.iptime.org/build_bot/BFX-AT400/OS14/.../SD/usb_bfx-at400_V24.561.130_SD.zip
+#   ./upgrade_firmware.sh /home/smchoi/project/BFX-UA300_OS10/Release/BFX-UA300_20260804_SD_561r103/usb_bfx-ua300_V19.561.103_SD.zip
 #
 set -uo pipefail
 
 FTP_USER="alt"
 FTP_PASS="alt1234"
 
+# 절대경로로 지정된 펌웨어를 scp로 받아올 때 모델별 접속정보.
+# 경로에 모델명(대소문자 무관)이 포함되어 있으면 매칭된다. (같은 인덱스끼리 대응, bash 3 호환을 위해 배열로 관리)
+SCP_MODELS=(BFX-UA300 BFX-AT100 BFX-AT400)
+SCP_HOSTS=(smchoi@altserver01.iptime.org smchoi@altserver01.iptime.org smchoi@192.168.2.106)
+SCP_PORTS=(803 803 "")
+
 usage() {
-    echo "사용법: $(basename "$0") <다운로드주소>" >&2
+    echo "사용법: $(basename "$0") <다운로드주소 또는 원격 서버의 절대경로>" >&2
     echo "예:     $(basename "$0") http://altserver01.iptime.org/.../usb_bfx-at400_V24.561.130_SD.zip" >&2
+    echo "        $(basename "$0") /home/smchoi/project/BFX-UA300_OS10/Release/.../usb_bfx-ua300_V19.561.103_SD.zip" >&2
     exit 1
 }
 
 [ $# -eq 1 ] || usage
 FTP_URL="$1"
 
+SOURCE_MODE="wget"
+SCP_HOST=""
+SCP_PORT=""
+
 case "$FTP_URL" in
+    /*)
+        SOURCE_MODE="scp"
+        SRC_UPPER="$(echo "$FTP_URL" | tr '[:lower:]' '[:upper:]')"
+        for i in "${!SCP_MODELS[@]}"; do
+            model_upper="$(echo "${SCP_MODELS[$i]}" | tr '[:lower:]' '[:upper:]')"
+            case "$SRC_UPPER" in
+                *"$model_upper"*)
+                    SCP_HOST="${SCP_HOSTS[$i]}"
+                    SCP_PORT="${SCP_PORTS[$i]}"
+                    break
+                    ;;
+            esac
+        done
+        if [ -z "$SCP_HOST" ]; then
+            echo "에러: 경로에서 모델을 인식할 수 없어 scp 접속정보를 찾을 수 없습니다: ${FTP_URL}" >&2
+            exit 1
+        fi
+        ;;
     ftp://*|http://*|https://*) ;;
     *) FTP_URL="ftp://${FTP_URL}" ;;
 esac
 
-for bin in wget unzip adb; do
+REQUIRED_BINS=(unzip adb)
+if [ "$SOURCE_MODE" = "scp" ]; then
+    REQUIRED_BINS+=(scp)
+else
+    REQUIRED_BINS+=(wget)
+fi
+
+for bin in "${REQUIRED_BINS[@]}"; do
     command -v "$bin" >/dev/null 2>&1 || { echo "에러: '${bin}' 명령을 찾을 수 없습니다." >&2; exit 1; }
 done
 
@@ -49,9 +89,23 @@ EXTRACT_DIR="${WORK_DIR}/extract"
 mkdir -p "$EXTRACT_DIR"
 
 echo "==> 다운로드: ${FTP_URL}"
-if ! wget --progress=bar:force:noscroll --user="${FTP_USER}" --password="${FTP_PASS}" "$FTP_URL" -O "$FIRMWARE_ZIP"; then
-    echo "에러: 다운로드에 실패했습니다: ${FTP_URL}" >&2
-    exit 1
+if [ "$SOURCE_MODE" = "scp" ]; then
+    if [ -n "$SCP_PORT" ]; then
+        echo "==> scp -P ${SCP_PORT} ${SCP_HOST}:${FTP_URL}"
+        SCP_OK=1; scp -P "$SCP_PORT" "${SCP_HOST}:${FTP_URL}" "$FIRMWARE_ZIP" || SCP_OK=0
+    else
+        echo "==> scp ${SCP_HOST}:${FTP_URL}"
+        SCP_OK=1; scp "${SCP_HOST}:${FTP_URL}" "$FIRMWARE_ZIP" || SCP_OK=0
+    fi
+    if [ "$SCP_OK" -eq 0 ]; then
+        echo "에러: 다운로드에 실패했습니다: ${FTP_URL}" >&2
+        exit 1
+    fi
+else
+    if ! wget --progress=bar:force:noscroll --user="${FTP_USER}" --password="${FTP_PASS}" "$FTP_URL" -O "$FIRMWARE_ZIP"; then
+        echo "에러: 다운로드에 실패했습니다: ${FTP_URL}" >&2
+        exit 1
+    fi
 fi
 
 echo "==> 압축 해제: ${FIRMWARE_ZIP}"
