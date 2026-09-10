@@ -4,8 +4,9 @@
 #
 # 동작:
 #   1. 펌웨어 zip을 받아온다.
+#      - 로컬에 존재하는 파일(상대/절대경로)이 주어지면 다운로드 없이 그 파일을 그대로 사용
 #      - http/https/ftp 주소가 주어지면 wget으로 다운로드 (계정: alt / alt1234)
-#      - 절대경로(예: /home/smchoi/.../usb_bfx-ua300_V19.561.103_SD.zip)가 주어지면
+#      - 로컬에 없는 절대경로(예: /home/smchoi/.../usb_bfx-ua300_V19.561.103_SD.zip)가 주어지면
 #        scp로 원격 빌드 서버에서 다운로드 (모델별 접속정보는 아래 SCP_MODELS/SCP_HOSTS/SCP_PORTS 참고)
 #   2. 압축 해제 -> 안의 최상위 폴더명(모델별로 다름, 예: usb_bfx-at400)을 자동 인식
 #   3. adb 장치 목록을 보여주고 키보드로 업그레이드할 장치 선택
@@ -15,9 +16,11 @@
 #   4. 선택한 장치에 adb root / push / recovery command 설정 / reboot recovery 수행
 #
 # 사용법:
-#   ./upgrade_firmware.sh <다운로드주소 또는 원격 서버의 절대경로>
+#   ./upgrade_firmware.sh <로컬 파일 | 다운로드주소 | 원격 서버의 절대경로>
 #
 # 예시:
+#   ./upgrade_firmware.sh usb_bfx-at400_V24.551.612_SD.zip
+#   ./upgrade_firmware.sh ~/Downloads/usb_bfx-at400_V24.551.612_SD.zip
 #   ./upgrade_firmware.sh http://altserver01.iptime.org/build_bot/BFX-AT400/OS14/.../SD/usb_bfx-at400_V24.561.130_SD.zip
 #   ./upgrade_firmware.sh /home/smchoi/project/BFX-UA300_OS10/Release/BFX-UA300_20260804_SD_561r103/usb_bfx-ua300_V19.561.103_SD.zip
 #
@@ -33,8 +36,9 @@ SCP_HOSTS=(smchoi@altserver01.iptime.org smchoi@altserver01.iptime.org smchoi@19
 SCP_PORTS=(803 803 "")
 
 usage() {
-    echo "사용법: $(basename "$0") <다운로드주소 또는 원격 서버의 절대경로>" >&2
-    echo "예:     $(basename "$0") http://altserver01.iptime.org/.../usb_bfx-at400_V24.561.130_SD.zip" >&2
+    echo "사용법: $(basename "$0") <로컬 파일 | 다운로드주소 | 원격 서버의 절대경로>" >&2
+    echo "예:     $(basename "$0") usb_bfx-at400_V24.551.612_SD.zip" >&2
+    echo "        $(basename "$0") http://altserver01.iptime.org/.../usb_bfx-at400_V24.561.130_SD.zip" >&2
     echo "        $(basename "$0") /home/smchoi/project/BFX-UA300_OS10/Release/.../usb_bfx-ua300_V19.561.103_SD.zip" >&2
     exit 1
 }
@@ -45,36 +49,57 @@ FTP_URL="$1"
 SOURCE_MODE="wget"
 SCP_HOST=""
 SCP_PORT=""
+LOCAL_ZIP=""
 
-case "$FTP_URL" in
-    /*)
-        SOURCE_MODE="scp"
-        SRC_UPPER="$(echo "$FTP_URL" | tr '[:lower:]' '[:upper:]')"
-        for i in "${!SCP_MODELS[@]}"; do
-            model_upper="$(echo "${SCP_MODELS[$i]}" | tr '[:lower:]' '[:upper:]')"
-            case "$SRC_UPPER" in
-                *"$model_upper"*)
-                    SCP_HOST="${SCP_HOSTS[$i]}"
-                    SCP_PORT="${SCP_PORTS[$i]}"
-                    break
-                    ;;
-            esac
-        done
-        if [ -z "$SCP_HOST" ]; then
-            echo "에러: 경로에서 모델을 인식할 수 없어 scp 접속정보를 찾을 수 없습니다: ${FTP_URL}" >&2
+# 로컬에 실제로 존재하는 파일이면 다운로드하지 않고 그대로 사용한다.
+if [ -f "$FTP_URL" ]; then
+    SOURCE_MODE="local"
+    LOCAL_ZIP="$(cd "$(dirname "$FTP_URL")" && pwd)/$(basename "$FTP_URL")"
+    if [ ! -r "$LOCAL_ZIP" ]; then
+        echo "에러: 파일을 읽을 수 없습니다: ${LOCAL_ZIP}" >&2
+        exit 1
+    fi
+else
+    case "$FTP_URL" in
+        /*)
+            SOURCE_MODE="scp"
+            SRC_UPPER="$(echo "$FTP_URL" | tr '[:lower:]' '[:upper:]')"
+            for i in "${!SCP_MODELS[@]}"; do
+                model_upper="$(echo "${SCP_MODELS[$i]}" | tr '[:lower:]' '[:upper:]')"
+                case "$SRC_UPPER" in
+                    *"$model_upper"*)
+                        SCP_HOST="${SCP_HOSTS[$i]}"
+                        SCP_PORT="${SCP_PORTS[$i]}"
+                        break
+                        ;;
+                esac
+            done
+            if [ -z "$SCP_HOST" ]; then
+                echo "에러: 경로에서 모델을 인식할 수 없어 scp 접속정보를 찾을 수 없습니다: ${FTP_URL}" >&2
+                exit 1
+            fi
+            ;;
+        ftp://*|http://*|https://*) ;;
+        ./*|../*|~/*)
+            echo "에러: 로컬 파일을 찾을 수 없습니다: ${FTP_URL}" >&2
             exit 1
-        fi
-        ;;
-    ftp://*|http://*|https://*) ;;
-    *) FTP_URL="ftp://${FTP_URL}" ;;
-esac
+            ;;
+        */*) FTP_URL="ftp://${FTP_URL}" ;;
+        *)
+            # 슬래시가 없는 이름은 로컬 파일을 의도한 것으로 보는 편이 자연스럽다.
+            echo "에러: 로컬 파일을 찾을 수 없습니다: ${FTP_URL}" >&2
+            echo "      (URL이나 원격 서버의 절대경로를 지정하려면 http://... 또는 /... 형태로 입력하세요)" >&2
+            exit 1
+            ;;
+    esac
+fi
 
 REQUIRED_BINS=(unzip adb)
-if [ "$SOURCE_MODE" = "scp" ]; then
-    REQUIRED_BINS+=(scp)
-else
-    REQUIRED_BINS+=(wget)
-fi
+case "$SOURCE_MODE" in
+    scp)   REQUIRED_BINS+=(scp) ;;
+    wget)  REQUIRED_BINS+=(wget) ;;
+    local) ;;
+esac
 
 for bin in "${REQUIRED_BINS[@]}"; do
     command -v "$bin" >/dev/null 2>&1 || { echo "에러: '${bin}' 명령을 찾을 수 없습니다." >&2; exit 1; }
@@ -88,8 +113,11 @@ FIRMWARE_ZIP="${WORK_DIR}/firmware.zip"
 EXTRACT_DIR="${WORK_DIR}/extract"
 mkdir -p "$EXTRACT_DIR"
 
-echo "==> 다운로드: ${FTP_URL}"
-if [ "$SOURCE_MODE" = "scp" ]; then
+if [ "$SOURCE_MODE" = "local" ]; then
+    FIRMWARE_ZIP="$LOCAL_ZIP"
+    echo "==> 로컬 파일 사용: ${FIRMWARE_ZIP}"
+elif [ "$SOURCE_MODE" = "scp" ]; then
+    echo "==> 다운로드: ${FTP_URL}"
     if [ -n "$SCP_PORT" ]; then
         echo "==> scp -P ${SCP_PORT} ${SCP_HOST}:${FTP_URL}"
         SCP_OK=1; scp -P "$SCP_PORT" "${SCP_HOST}:${FTP_URL}" "$FIRMWARE_ZIP" || SCP_OK=0
@@ -102,6 +130,7 @@ if [ "$SOURCE_MODE" = "scp" ]; then
         exit 1
     fi
 else
+    echo "==> 다운로드: ${FTP_URL}"
     if ! wget --progress=bar:force:noscroll --user="${FTP_USER}" --password="${FTP_PASS}" "$FTP_URL" -O "$FIRMWARE_ZIP"; then
         echo "에러: 다운로드에 실패했습니다: ${FTP_URL}" >&2
         exit 1
