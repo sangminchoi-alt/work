@@ -532,6 +532,19 @@ if [ -f "system.log" ]; then
     cat "system.log" >> "$merged_system_log"
 fi
 
+merged_main_system_log="merged_main_system.log"
+
+rm -rf "$merged_main_system_log"
+
+# Merge main + system logs in timestamp order (MM-DD HH:MM:SS.mmm)
+# Lines without a timestamp inherit the previous line's timestamp so they stay attached
+awk '
+    FNR == 1 { ts = "00-00 00:00:00.000" }
+    match($0, /^[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\.[0-9][0-9][0-9]/) { ts = substr($0, 1, 18) }
+    { print ts "\t" $0 }
+' "$merged_main_log" "$merged_system_log" 2>/dev/null | \
+    LC_ALL=C sort -s -t$'\t' -k1,1 | cut -f2- > "$merged_main_system_log"
+
 display_uptime
 display_stb_on_property
 display_tv_power_control_property
