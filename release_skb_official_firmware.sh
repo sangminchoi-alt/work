@@ -545,6 +545,12 @@ prepare_repo() {  # prepare_repo <url> <local_dir> <branch_exists>
     [ -n "$SKB_GIT_USER_NAME" ]  && git -C "$dir" config user.name  "$SKB_GIT_USER_NAME"
     [ -n "$SKB_GIT_USER_EMAIL" ] && git -C "$dir" config user.email "$SKB_GIT_USER_EMAIL"
 
+    # 대용량 펌웨어 LFS 전송 시 타임아웃/동시 전송으로 인한 실패 방지
+    git -C "$dir" config lfs.activitytimeout 0      # 0 = 무제한
+    git -C "$dir" config lfs.dialtimeout 60
+    git -C "$dir" config lfs.tlstimeout 60
+    git -C "$dir" config lfs.concurrenttransfers 1
+
     if [ "$exists" -eq 0 ]; then
         info "브랜치 생성: git checkout -b ${BRANCH}"
         git -C "$dir" checkout -b "$BRANCH" || die "브랜치 생성에 실패했습니다: ${BRANCH}"
