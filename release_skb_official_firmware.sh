@@ -36,6 +36,10 @@
 #     ./release_skb_official_firmware.sh BFX-UA300 <버전> --next-only
 #     -> 이미 올라간 <버전> 브랜치를 clone 해서 EDMP/ 에 +1 user firmware 만 추가 커밋
 #
+#   --no-debug 로 user firmware 만 먼저 올렸고, 나중에 userdebug 빌드가 완료된 경우:
+#     ./release_skb_official_firmware.sh BFX-UA300 <버전> --debug-only
+#     -> release 저장소는 건드리지 않고 debug 저장소에 9~11 단계만 진행 (SD 펌웨어만 받는다)
+#
 #   저장소 주소는 버전(플랫폼 버전)에 따라 달라지므로 처음 실행할 때 한 번만 입력받고,
 #   ~/.config/release_skb_official_firmware.repos 에 기억해 두었다가 다음부터는 그대로 쓴다.
 #   (다시 입력받으려면 --ask-repo)
@@ -50,6 +54,9 @@
 #       --next-only         이미 올라간 <버전> 브랜치에 다음 버전(+1) user firmware 만
 #                           EDMP/ 로 추가 커밋한다. (+1 빌드가 나중에 완료된 경우)
 #                           release 저장소만 건드리고, 그 파일 하나만 받는다.
+#       --debug-only        debug 저장소 단계(9~11)만 진행한다. (--no-debug 로 먼저 올린 뒤
+#                           userdebug 빌드가 나중에 완료된 경우)
+#                           debug 저장소만 건드리고, SD 펌웨어 하나만 받는다.
 #       --no-branch-check   원격에 같은 브랜치가 있는지 확인하지 않음 (로컬 브랜치만 생성)
 #                           테스트용. push 하면 원격에 있는 경우 거부된다.
 #       --ask-repo            기억해 둔 저장소 주소를 무시하고 다시 입력받음
@@ -100,7 +107,7 @@ warn()  { echo "경고: $*" >&2; }
 
 MODEL=""; VERSION=""; BRANCH=""
 RELEASE_REPO=""; DEBUG_REPO=""
-DRY_RUN=0; ASSUME_YES=0; NO_PUSH=0; NO_NEXT=0; NO_DEBUG=0; FORCE=0; LIST_ONLY=0; ANY_STATUS=0; ASK_REPO=0; NO_BRANCH_CHECK=0; NEXT_ONLY=0
+DRY_RUN=0; ASSUME_YES=0; NO_PUSH=0; NO_NEXT=0; NO_DEBUG=0; FORCE=0; LIST_ONLY=0; ANY_STATUS=0; ASK_REPO=0; NO_BRANCH_CHECK=0; NEXT_ONLY=0; DEBUG_ONLY=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -110,6 +117,7 @@ while [ $# -gt 0 ]; do
         --no-next)        NO_NEXT=1; shift ;;
         --no-debug)       NO_DEBUG=1; shift ;;
         --next-only)      NEXT_ONLY=1; shift ;;
+        --debug-only)     DEBUG_ONLY=1; shift ;;
         --no-branch-check) NO_BRANCH_CHECK=1; shift ;;
         --ask-repo)       ASK_REPO=1; shift ;;
         --release-repo)   RELEASE_REPO="${2:-}"; shift 2 ;;
@@ -141,6 +149,11 @@ echo "$MODEL" | grep -qE '^[A-Za-z0-9._-]+$' || die "모델명에 허용되지 �
 
 if [ "$NEXT_ONLY" -eq 1 ] && [ "$NO_NEXT" -eq 1 ]; then
     die "--next-only 와 --no-next 는 같이 쓸 수 없습니다."
+fi
+if [ "$DEBUG_ONLY" -eq 1 ]; then
+    [ "$NO_DEBUG" -eq 1 ]  && die "--debug-only 와 --no-debug 는 같이 쓸 수 없습니다."
+    [ "$NEXT_ONLY" -eq 1 ] && die "--debug-only 와 --next-only 는 같이 쓸 수 없습니다."
+    NO_NEXT=1   # +1 user firmware 는 release 저장소 작업이다
 fi
 
 for bin in curl git ssh; do
@@ -230,7 +243,8 @@ fi
 
 IFS='|' read -r REQ_ID OS_VERSION TAG_NAME BUILD_STATUS GOOGLE_CERT SD_FTP SU_FTP <<< "$ROW"
 
-[ -n "$SU_FTP" ] || die "SU 펌웨어 링크가 DB 에 없습니다. (build_request_id=${REQ_ID}, status=${BUILD_STATUS})"
+[ "$DEBUG_ONLY" -eq 1 ] || [ -n "$SU_FTP" ] \
+    || die "SU 펌웨어 링크가 DB 에 없습니다. (build_request_id=${REQ_ID}, status=${BUILD_STATUS})"
 # SD(userdebug) 는 debug 저장소 작업을 할 때만 필요하다
 
 BUILD_URL="${SU_FTP%/SU}"          # 빌드 디렉터리 (SU 상위)
@@ -307,8 +321,12 @@ NEED_DEBUG_REPO=1
 [ "$NEXT_ONLY" -eq 1 ] && NEED_DEBUG_REPO=0
 [ "$NO_DEBUG" -eq 1 ] && NEED_DEBUG_REPO=0
 
+# --debug-only 는 debug 저장소만 쓰므로 release 저장소는 묻지 않는다
+NEED_RELEASE_REPO=1
+[ "$DEBUG_ONLY" -eq 1 ] && NEED_RELEASE_REPO=0
+
 NEED_ASK=0
-[ -z "$RELEASE_REPO" ] && NEED_ASK=1
+[ "$NEED_RELEASE_REPO" -eq 1 ] && [ -z "$RELEASE_REPO" ] && NEED_ASK=1
 [ "$NEED_DEBUG_REPO" -eq 1 ] && [ -z "$DEBUG_REPO" ] && NEED_ASK=1
 
 if [ "$NEED_ASK" -eq 1 ]; then
@@ -317,14 +335,16 @@ if [ "$NEED_ASK" -eq 1 ]; then
         echo "  ${MODEL} (플랫폼 ${PLATFORM_VER}) 저장소 주소를 입력해 주세요."
         echo "  한 번 입력하면 ${REPO_CACHE} 에 저장되어 다음부터는 묻지 않습니다."
     fi
-    if [ -z "$RELEASE_REPO" ]; then
+    if [ "$NEED_RELEASE_REPO" -eq 1 ] && [ -z "$RELEASE_REPO" ]; then
         ask_repo "release  (user firmware)" "$SAVED_RELEASE"; RELEASE_REPO="$ASK_REPO_RESULT"
     fi
     if [ "$NEED_DEBUG_REPO" -eq 1 ] && [ -z "$DEBUG_REPO" ]; then
-        if [ -z "$SAVED_DEBUG" ]; then
+        if [ -z "$SAVED_DEBUG" ] && [ "$DEBUG_ONLY" -eq 0 ]; then
             echo "  (debug 저장소가 아직 없으면 그냥 Enter - userdebug 단계를 건너뜁니다)"
         fi
-        ask_repo "debug    (userdebug)     " "$SAVED_DEBUG" 1; DEBUG_REPO="$ASK_REPO_RESULT"
+        DEBUG_ALLOW_SKIP=1
+        [ "$DEBUG_ONLY" -eq 1 ] && DEBUG_ALLOW_SKIP=0   # --debug-only 는 건너뛸 수 없다
+        ask_repo "debug    (userdebug)     " "$SAVED_DEBUG" "$DEBUG_ALLOW_SKIP"; DEBUG_REPO="$ASK_REPO_RESULT"
         if [ -z "$DEBUG_REPO" ]; then
             NO_DEBUG=1; NEED_DEBUG_REPO=0
             info "debug 저장소 주소 없음 - userdebug 단계를 건너뜁니다. (--no-debug)"
@@ -336,15 +356,19 @@ fi
 DO_DEBUG=1
 { [ "$NEXT_ONLY" -eq 1 ] || [ "$NO_DEBUG" -eq 1 ]; } && DO_DEBUG=0
 
-[ -n "$RELEASE_REPO" ] || die "release 저장소 주소가 필요합니다."
+# 이번 실행에서 release 저장소 작업을 하는지
+DO_RELEASE=1
+[ "$DEBUG_ONLY" -eq 1 ] && DO_RELEASE=0
+
+[ "$NEED_RELEASE_REPO" -eq 0 ] || [ -n "$RELEASE_REPO" ] || die "release 저장소 주소가 필요합니다."
 [ "$NEED_DEBUG_REPO" -eq 0 ] || [ -n "$DEBUG_REPO" ] || die "debug 저장소 주소가 필요합니다."
 
 # 캐시에는 사용자가 계획을 확인한 뒤에 기록한다 (아래 remember_repos 참고)
 remember_repos() {
-    # --next-only 로 debug 를 안 물어봤으면 캐시에 있던 값을 그대로 둔다
-    if [ "$RELEASE_REPO" != "$SAVED_RELEASE" ] || \
+    # --next-only 로 debug 를, --debug-only 로 release 를 안 물어봤으면 캐시에 있던 값을 그대로 둔다
+    if { [ -n "$RELEASE_REPO" ] && [ "$RELEASE_REPO" != "$SAVED_RELEASE" ]; } || \
        { [ -n "$DEBUG_REPO" ] && [ "$DEBUG_REPO" != "$SAVED_DEBUG" ]; }; then
-        cache_put "$RELEASE_REPO" "${DEBUG_REPO:-$SAVED_DEBUG}"
+        cache_put "${RELEASE_REPO:-$SAVED_RELEASE}" "${DEBUG_REPO:-$SAVED_DEBUG}"
         info "저장소 주소를 기억했습니다: ${REPO_CACHE}"
     fi
 }
@@ -370,11 +394,13 @@ human_size() {
 # 3. repo_diffmanifests_*.txt (이전 버전이 -1 이 아닐 수 있어 디렉터리에서 찾는다)
 DIFF_NAME=""; SU_NAME=""; SD_NAME=""
 if [ "$NEXT_ONLY" -eq 0 ]; then
-    DIFF_NAME="$(list_dir "${BUILD_URL}/" | grep -E '^repo_diffmanifests_.*\.txt$' | tail -n 1)"
-    [ -n "$DIFF_NAME" ] || die "repo_diffmanifests 파일을 찾을 수 없습니다: ${BUILD_URL}/"
+    if [ "$DO_RELEASE" -eq 1 ]; then
+        DIFF_NAME="$(list_dir "${BUILD_URL}/" | grep -E '^repo_diffmanifests_.*\.txt$' | tail -n 1)"
+        [ -n "$DIFF_NAME" ] || die "repo_diffmanifests 파일을 찾을 수 없습니다: ${BUILD_URL}/"
 
-    SU_NAME="usb_${MODEL_LOWER}_V${VERSION}_SU.zip"
-    url_exists "${SU_FTP}/${SU_NAME}" || die "user firmware 를 찾을 수 없습니다: ${SU_FTP}/${SU_NAME}"
+        SU_NAME="usb_${MODEL_LOWER}_V${VERSION}_SU.zip"
+        url_exists "${SU_FTP}/${SU_NAME}" || die "user firmware 를 찾을 수 없습니다: ${SU_FTP}/${SU_NAME}"
+    fi
     if [ "$DO_DEBUG" -eq 1 ]; then
         [ -n "$SD_FTP" ] || die "SD 펌웨어 링크가 DB 에 없습니다. (build_request_id=${REQ_ID}, status=${BUILD_STATUS})
       debug 저장소 단계를 건너뛰려면 --no-debug"
@@ -443,7 +469,7 @@ elif [ "$NO_BRANCH_CHECK" -eq 1 ]; then
       원격에 같은 브랜치가 있으면 push 단계에서 거부됩니다."
 elif [ "$DRY_RUN" -eq 0 ]; then
     info "브랜치 중복 확인: ${BRANCH}"
-    check_branch "release" "$RELEASE_REPO" || RELEASE_BRANCH_EXISTS=1
+    [ "$DO_RELEASE" -eq 1 ] && { check_branch "release" "$RELEASE_REPO" || RELEASE_BRANCH_EXISTS=1; }
     [ "$DO_DEBUG" -eq 1 ] && { check_branch "debug" "$DEBUG_REPO" || DEBUG_BRANCH_EXISTS=1; }
 fi
 
@@ -454,8 +480,12 @@ echo "  모델 / 버전   : ${MODEL} ${VERSION}"
 echo "  빌드          : id=${REQ_ID}  OS${OS_VERSION}  ${TAG_NAME}"
 echo "  브랜치        : ${BRANCH}  (기준: ${BASE_BRANCH})"
 echo ""
+if [ "$DO_RELEASE" -eq 0 ]; then
+echo "  [release] 건너뜀 (--debug-only) - release 저장소는 건드리지 않습니다."
+else
 echo "  [release] ${RELEASE_REPO}"
-if [ "$NEXT_ONLY" -eq 0 ]; then
+fi
+if [ "$NEXT_ONLY" -eq 0 ] && [ "$DO_RELEASE" -eq 1 ]; then
 echo "     + ${DIFF_NAME}"
 echo "         -> commit \"${VERSION} repo_diffmanifests\""
 echo "     + ${SU_NAME}"
@@ -482,6 +512,8 @@ if [ "$MODEL_CONFIRMED" -eq 0 ]; then
 fi
 if [ "$NO_PUSH" -eq 1 ]; then
     echo "  push: 안 함 (--no-push)"
+elif [ "$DO_RELEASE" -eq 0 ]; then
+    echo "  push: debug 저장소 origin ${BRANCH}"
 elif [ "$DO_DEBUG" -eq 1 ]; then
     echo "  push: 두 저장소 모두 origin ${BRANCH}"
 else
@@ -515,8 +547,10 @@ fetch() {  # fetch <url> <dest>
 }
 
 if [ "$NEXT_ONLY" -eq 0 ]; then
-    fetch "${BUILD_URL}/${DIFF_NAME}"  "${DL_DIR}/${DIFF_NAME}"
-    fetch "${SU_FTP}/${SU_NAME}"       "${DL_DIR}/${SU_NAME}"
+    if [ "$DO_RELEASE" -eq 1 ]; then
+        fetch "${BUILD_URL}/${DIFF_NAME}"  "${DL_DIR}/${DIFF_NAME}"
+        fetch "${SU_FTP}/${SU_NAME}"       "${DL_DIR}/${SU_NAME}"
+    fi
     [ "$DO_DEBUG" -eq 1 ] && fetch "${SD_FTP}/${SD_NAME}" "${DL_DIR}/${SD_NAME}"
 fi
 [ -n "$NEXT_VERSION" ] && fetch "$NEXT_SU_URL" "${DL_DIR}/${NEXT_SU_NAME}"
@@ -576,14 +610,16 @@ RELEASE_DIR="${WORK_DIR}/release"
 DEBUG_DIR="${WORK_DIR}/debug"
 
 # [release 저장소] 1~8
-echo ""; info "=== release 저장소 작업 ==="
-prepare_repo "$RELEASE_REPO" "$RELEASE_DIR" "$RELEASE_BRANCH_EXISTS"
-if [ "$NEXT_ONLY" -eq 0 ]; then
-    add_and_commit "$RELEASE_DIR" "${DL_DIR}/${DIFF_NAME}" "$DIFF_NAME" "${VERSION} repo_diffmanifests"
-    add_and_commit "$RELEASE_DIR" "${DL_DIR}/${SU_NAME}"   "$SU_NAME"   "${VERSION} user firmware"
-fi
-if [ -n "$NEXT_VERSION" ]; then
-    add_and_commit "$RELEASE_DIR" "${DL_DIR}/${NEXT_SU_NAME}" "${SKB_EDMP_SUBDIR}/${NEXT_SU_NAME}" "${NEXT_VERSION} user firmware"
+if [ "$DO_RELEASE" -eq 1 ]; then
+    echo ""; info "=== release 저장소 작업 ==="
+    prepare_repo "$RELEASE_REPO" "$RELEASE_DIR" "$RELEASE_BRANCH_EXISTS"
+    if [ "$NEXT_ONLY" -eq 0 ]; then
+        add_and_commit "$RELEASE_DIR" "${DL_DIR}/${DIFF_NAME}" "$DIFF_NAME" "${VERSION} repo_diffmanifests"
+        add_and_commit "$RELEASE_DIR" "${DL_DIR}/${SU_NAME}"   "$SU_NAME"   "${VERSION} user firmware"
+    fi
+    if [ -n "$NEXT_VERSION" ]; then
+        add_and_commit "$RELEASE_DIR" "${DL_DIR}/${NEXT_SU_NAME}" "${SKB_EDMP_SUBDIR}/${NEXT_SU_NAME}" "${NEXT_VERSION} user firmware"
+    fi
 fi
 
 # [debug 저장소] 9~11
@@ -596,10 +632,12 @@ fi
 if [ "$NO_PUSH" -eq 1 ]; then
     KEEP_DIR="${PWD}/${MODEL}_${VERSION}_repos"
     rm -rf "$KEEP_DIR"; mkdir -p "$KEEP_DIR"
-    cp -R "$RELEASE_DIR" "${KEEP_DIR}/release" || die "작업 디렉터리를 옮기지 못했습니다: ${KEEP_DIR}"
     echo ""
     info "--no-push: commit 까지만 했습니다. 아래에서 확인 후 직접 push 하세요."
-    echo "  git -C ${KEEP_DIR}/release push -u origin ${BRANCH}"
+    if [ "$DO_RELEASE" -eq 1 ]; then
+        cp -R "$RELEASE_DIR" "${KEEP_DIR}/release" || die "작업 디렉터리를 옮기지 못했습니다: ${KEEP_DIR}"
+        echo "  git -C ${KEEP_DIR}/release push -u origin ${BRANCH}"
+    fi
     if [ "$DO_DEBUG" -eq 1 ]; then
         cp -R "$DEBUG_DIR" "${KEEP_DIR}/debug" || die "작업 디렉터리를 옮기지 못했습니다: ${KEEP_DIR}"
         echo "  git -C ${KEEP_DIR}/debug   push -u origin ${BRANCH}"
@@ -612,8 +650,10 @@ fi
 echo ""
 info "=== push ==="
 PUSH_FAIL=0
-info "push: release -> origin ${BRANCH}"
-git -C "$RELEASE_DIR" push -u origin "$BRANCH" || { warn "release 저장소 push 실패"; PUSH_FAIL=1; }
+if [ "$DO_RELEASE" -eq 1 ]; then
+    info "push: release -> origin ${BRANCH}"
+    git -C "$RELEASE_DIR" push -u origin "$BRANCH" || { warn "release 저장소 push 실패"; PUSH_FAIL=1; }
+fi
 if [ "$DO_DEBUG" -eq 1 ]; then
     info "push: debug -> origin ${BRANCH}"
     git -C "$DEBUG_DIR" push -u origin "$BRANCH" || { warn "debug 저장소 push 실패"; PUSH_FAIL=1; }
@@ -626,12 +666,16 @@ fi
 if [ "$NEXT_ONLY" -eq 1 ]; then
     echo "완료: ${NEXT_VERSION} user firmware 를 '${BRANCH}' 브랜치의 ${SKB_EDMP_SUBDIR}/ 에 추가했습니다."
     echo "  release: ${RELEASE_REPO}"
+elif [ "$DO_RELEASE" -eq 0 ]; then
+    echo "완료: ${MODEL} ${VERSION} userdebug firmware 를 '${BRANCH}' 브랜치로 업로드했습니다."
+    echo "  debug  : ${DEBUG_REPO}"
 else
     echo "완료: ${MODEL} ${VERSION} 을(를) '${BRANCH}' 브랜치로 업로드했습니다."
     echo "  release: ${RELEASE_REPO}"
     if [ "$DO_DEBUG" -eq 1 ]; then
         echo "  debug  : ${DEBUG_REPO}"
     else
-        echo "  debug  : 건너뜀 (--no-debug) - 저장소가 생기면 userdebug 펌웨어를 따로 올리세요."
+        echo "  debug  : 건너뜀 (--no-debug) - userdebug 빌드가 완료되면 아래로 따로 올리세요."
+        echo "    ${SCRIPT_NAME} ${MODEL} ${VERSION} --debug-only"
     fi
 fi
