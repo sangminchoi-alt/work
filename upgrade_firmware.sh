@@ -32,7 +32,7 @@ FTP_PASS="alt1234"
 # 절대경로로 지정된 펌웨어를 scp로 받아올 때 모델별 접속정보.
 # 경로에 모델명(대소문자 무관)이 포함되어 있으면 매칭된다. (같은 인덱스끼리 대응, bash 3 호환을 위해 배열로 관리)
 SCP_MODELS=(BFX-UA300 BFX-AT100 BFX-AT400)
-SCP_HOSTS=(smchoi@altserver01.iptime.org smchoi@altserver01.iptime.org smchoi@192.168.2.106)
+SCP_HOSTS=(smchoi@altserver01.iptime.org smchoi@altserver01.iptime.org smchoi@192.168.201.9)
 SCP_PORTS=(803 803 "")
 
 usage() {
