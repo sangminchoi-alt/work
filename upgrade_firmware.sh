@@ -27,7 +27,7 @@
 set -uo pipefail
 
 FTP_USER="alt"
-FTP_PASS="alt1234"
+FTP_PASS="altech0901!"
 
 # 절대경로로 지정된 펌웨어를 scp로 받아올 때 모델별 접속정보.
 # 경로에 모델명(대소문자 무관)이 포함되어 있으면 매칭된다. (같은 인덱스끼리 대응, bash 3 호환을 위해 배열로 관리)

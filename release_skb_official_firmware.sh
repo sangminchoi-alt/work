@@ -87,7 +87,7 @@ SSH_TIMEOUT="${SSH_TIMEOUT:-15}"
 
 # --- 펌웨어 다운로드 (altserver01) ----------------------------------------------
 FTP_USER="${FTP_USER:-alt}"
-FTP_PASSWORD="${FTP_PASSWORD:-alt1234}"
+FTP_PASSWORD="${FTP_PASSWORD:-altech0901!}"
 
 # --- SKB bitbucket --------------------------------------------------------------
 # SKB_DEBUG_SUBDIR 은 모델마다 달라서 모델을 확인한 뒤에 정한다 (아래 참고)
