@@ -297,6 +297,9 @@ select_and_upgrade() {
         local labels=()
         for serial in "${devices[@]}"; do
             local model fw_version version_part label mismatch
+            # 일부 빌드는 root 가 아니면 ro.vendor.fw.version 이 보이지 않는다
+            adb -s "$serial" root >/dev/null 2>&1
+            adb -s "$serial" wait-for-device
             model="$(get_device_model "$serial")"
             fw_version="$(get_device_fw_version "$serial")"
             models+=("$model")
