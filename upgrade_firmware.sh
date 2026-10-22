@@ -5,7 +5,7 @@
 # 동작:
 #   1. 펌웨어 zip을 받아온다.
 #      - 로컬에 존재하는 파일(상대/절대경로)이 주어지면 다운로드 없이 그 파일을 그대로 사용
-#      - http/https/ftp 주소가 주어지면 wget으로 다운로드 (계정: alt / alt1234)
+#      - http/https/ftp 주소가 주어지면 wget으로 다운로드 (계정: .ftp_credentials)
 #      - 로컬에 없는 절대경로(예: /home/smchoi/.../usb_bfx-ua300_V19.561.103_SD.zip)가 주어지면
 #        scp로 원격 빌드 서버에서 다운로드 (모델별 접속정보는 아래 SCP_MODELS/SCP_HOSTS/SCP_PORTS 참고)
 #   2. 압축 해제 -> 안의 최상위 폴더명(모델별로 다름, 예: usb_bfx-at400)을 자동 인식
@@ -26,8 +26,7 @@
 #
 set -uo pipefail
 
-FTP_USER="alt"
-FTP_PASS="altech0901!"
+source "$(dirname "${BASH_SOURCE[0]}")/.ftp_credentials"  # FTP_USER, FTP_PASSWORD
 
 # 절대경로로 지정된 펌웨어를 scp로 받아올 때 모델별 접속정보.
 # 경로에 모델명(대소문자 무관)이 포함되어 있으면 매칭된다. (같은 인덱스끼리 대응, bash 3 호환을 위해 배열로 관리)
@@ -131,7 +130,7 @@ elif [ "$SOURCE_MODE" = "scp" ]; then
     fi
 else
     echo "==> 다운로드: ${FTP_URL}"
-    if ! wget --progress=bar:force:noscroll --user="${FTP_USER}" --password="${FTP_PASS}" "$FTP_URL" -O "$FIRMWARE_ZIP"; then
+    if ! wget --progress=bar:force:noscroll --user="${FTP_USER}" --password="${FTP_PASSWORD}" "$FTP_URL" -O "$FIRMWARE_ZIP"; then
         echo "에러: 다운로드에 실패했습니다: ${FTP_URL}" >&2
         exit 1
     fi

@@ -2,8 +2,7 @@
 
 FTP_SERVER="altserver01.iptime.org"
 HTTP_SERVER="http://altserver01.iptime.org"
-FTP_USER="alt"
-FTP_PASSWORD="altech0901!"
+source "${0:A:h}/.ftp_credentials"  # FTP_USER, FTP_PASSWORD
 
 if [[ -z "$1" ]]; then
     echo "Usage: $0 <file>"

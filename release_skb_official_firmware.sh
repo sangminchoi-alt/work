@@ -86,8 +86,7 @@ BUILD_BOT_DB_PASS="${BUILD_BOT_DB_PASS:-build_bot11qq}"
 SSH_TIMEOUT="${SSH_TIMEOUT:-15}"
 
 # --- 펌웨어 다운로드 (altserver01) ----------------------------------------------
-FTP_USER="${FTP_USER:-alt}"
-FTP_PASSWORD="${FTP_PASSWORD:-altech0901!}"
+source "$(dirname "${BASH_SOURCE[0]}")/.ftp_credentials"  # FTP_USER, FTP_PASSWORD
 
 # --- SKB bitbucket --------------------------------------------------------------
 # SKB_DEBUG_SUBDIR 은 모델마다 달라서 모델을 확인한 뒤에 정한다 (아래 참고)
