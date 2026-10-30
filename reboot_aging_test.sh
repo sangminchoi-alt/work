@@ -7,8 +7,17 @@
 # 사용법: ./reboot_aging_test.sh <STB IP>[:port]
 # 환경: macOS + ADB
 
-# Slack Incoming Webhook URL (환경변수 SLACK_WEBHOOK 으로 덮어쓸 수 있다)
-SLACK_WEBHOOK="${SLACK_WEBHOOK:-https://hooks.slack.com/services/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}"
+# Slack Incoming Webhook URL
+#   환경변수 SLACK_WEBHOOK 이 없으면 스크립트 옆의 .slack_webhook 파일(git 에서 제외됨)에서 읽는다
+#   예) echo 'https://hooks.slack.com/services/...' > .slack_webhook
+SLACK_WEBHOOK_FILE="$(dirname "${BASH_SOURCE[0]}")/.slack_webhook"
+if [ -z "${SLACK_WEBHOOK:-}" ] && [ -r "$SLACK_WEBHOOK_FILE" ]; then
+    SLACK_WEBHOOK="$(head -n1 "$SLACK_WEBHOOK_FILE" | tr -d '[:space:]')"
+fi
+if [ -z "${SLACK_WEBHOOK:-}" ]; then
+    echo "에러: Slack 웹훅 URL이 없습니다. SLACK_WEBHOOK 환경변수나 ${SLACK_WEBHOOK_FILE} 파일에 설정하세요." >&2
+    exit 1
+fi
 REBOOT_UPTIME="${REBOOT_UPTIME:-300}"  # 5분 (초) — 이 uptime 이 되면 adb reboot
 POLL_INTERVAL=5                        # uptime 확인 주기 (초)
 BOOT_TIMEOUT=600                       # 10분 (초) — adb reboot 후 부팅 완료 대기 한도
