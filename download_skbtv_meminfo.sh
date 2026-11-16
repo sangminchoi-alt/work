@@ -102,14 +102,24 @@ printf '%s\n' "${SAMPLES[@]}" > "$OUT_DIR/samples.txt.tmp" && mv "$OUT_DIR/sampl
 echo "기간: $START ~ $END (KST) · 날짜 폴더 ${#DATES[@]}개 · 시료 ${#SAMPLES[@]}개 → $OUT_DIR"
 
 download_sample() {
-    local S=$1 d url list n=0 skip=0 fail=0 size f local_size
+    local S=$1 d url raw rc err list n=0 skip=0 fail=0 size f local_size
     local -a args
     mkdir -p "$OUT_DIR/$S"
+    err=$(mktemp)
     for d in $DATES_STR; do
         url="$BASE_URL/${d}${FOLDER_SUFFIX}/$S/memory/"
-        list=$(curl -s --max-time 60 --user "${FTP_USER}:${FTP_PASSWORD}" "$url" | tr -d '\r' |
-            awk -v s="$START_TS" -v e="$END_TS" '$NF ~ /^skbtv_meminfo_/ {
-                f = $NF; if (match(f, /[0-9]{8}_[0-9]{6}/)) { t = substr(f, RSTART, 8) substr(f, RSTART + 9, 6);
+        raw=$(curl -sS --max-time 60 --retry 2 --user "${FTP_USER}:${FTP_PASSWORD}" "$url" 2>"$err"); rc=$?
+        if [ $rc -ne 0 ]; then
+            case $rc in
+                9|78) echo "  $S: $d 폴더 없음 ($url)" ;;   # 서버에 해당 날짜/시료 폴더가 없음
+                *) echo "  $S: $d 목록 조회 실패 (curl $rc: $(head -n1 "$err"))"; fail=1 ;;
+            esac
+            continue
+        fi
+        # mawk 등 {n} 반복을 지원하지 않는 awk 도 있으므로 TS_RE 는 [0-9] 를 나열해 쓴다
+        list=$(printf '%s\n' "$raw" | tr -d '\r' |
+            awk -v s="$START_TS" -v e="$END_TS" -v re="$TS_RE" '$NF ~ /^skbtv_meminfo_/ {
+                f = $NF; if (match(f, re)) { t = substr(f, RSTART, 8) substr(f, RSTART + 9, 6);
                 if (t >= s && t <= e) print $5, f } }')
         [ -z "$list" ] && continue
         args=()
@@ -122,9 +132,10 @@ download_sample() {
             args+=(-o "$OUT_DIR/$S/$f" "$url$f")
         done <<< "$list"
         if [ ${#args[@]} -gt 0 ]; then
-            curl -s --max-time 3600 --retry 3 --user "${FTP_USER}:${FTP_PASSWORD}" "${args[@]}" || fail=1
+            curl -sS --max-time 3600 --retry 3 --user "${FTP_USER}:${FTP_PASSWORD}" "${args[@]}" || fail=1
         fi
     done
+    rm -f "$err"
     if [ $fail -ne 0 ]; then
         echo "  $S: 일부 실패 (같은 명령으로 다시 실행하면 이어 받습니다)"
     else
@@ -132,8 +143,9 @@ download_sample() {
     fi
     [ $n -gt 0 ] || echo "  $S: 경고 - 범위 안에 파일이 없습니다 (시료번호/기간 확인)"
 }
+TS_RE='[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]'
 export -f download_sample
-export BASE_URL FOLDER_SUFFIX OUT_DIR START_TS END_TS FTP_USER FTP_PASSWORD
+export BASE_URL FOLDER_SUFFIX OUT_DIR START_TS END_TS FTP_USER FTP_PASSWORD TS_RE
 export DATES_STR="${DATES[*]}"
 
 printf '%s\n' "${SAMPLES[@]}" | xargs -P "$JOBS" -I{} bash -c 'download_sample "$1"' _ {}
@@ -141,8 +153,8 @@ printf '%s\n' "${SAMPLES[@]}" | xargs -P "$JOBS" -I{} bash -c 'download_sample "
 # 결과 확인: 시료별 범위 안 파일 수
 echo "다운로드 결과:"
 for S in "${SAMPLES[@]}"; do
-    cnt=$(ls "$OUT_DIR/$S" 2>/dev/null | awk -v s="$START_TS" -v e="$END_TS" '{
-        if (match($0, /[0-9]{8}_[0-9]{6}/)) { t = substr($0, RSTART, 8) substr($0, RSTART + 9, 6); if (t >= s && t <= e) c++ } } END { print c + 0 }')
+    cnt=$(ls "$OUT_DIR/$S" 2>/dev/null | awk -v s="$START_TS" -v e="$END_TS" -v re="$TS_RE" '{
+        if (match($0, re)) { t = substr($0, RSTART, 8) substr($0, RSTART + 9, 6); if (t >= s && t <= e) c++ } } END { print c + 0 }')
     echo "  $S: $cnt"
 done
 
