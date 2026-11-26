@@ -128,23 +128,23 @@ extract_one_test() {
     # 원격 IP 자동 설정
     case "$MODEL" in
         "BFX-AT400")
-            [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.201.205" || REMOTE_IP="192.168.201.206"
+            [ "$TEST" == "CTS" ] && REMOTE_IP="100.66.200.11" || REMOTE_IP="100.105.46.6"
             ;;
         "BFX-AT100")
-            [ "$TEST" == "CTS" ] && REMOTE_IP="192.168.201.201" || REMOTE_IP="192.168.201.202"
+            [ "$TEST" == "CTS" ] && REMOTE_IP="100.125.140.37" || REMOTE_IP="100.88.166.46"
             ;;
         "BFX-UA300")
-            REMOTE_IP="192.168.201.204"
+            REMOTE_IP="100.79.228.13"
             ;;
     esac
 
     # USER 매핑
     case "$REMOTE_IP" in
-        192.168.201.205) USER="dev2-google10" ;;
-        192.168.201.206) USER="dev2-google11" ;;
-        192.168.201.201) USER="dev2-google01" ;;
-        192.168.201.202) USER="dev2-google02" ;;
-        192.168.201.204) USER="dev2-google04" ;;
+        100.66.200.11) USER="dev2-google10" ;;
+        100.105.46.6) USER="dev2-google11" ;;
+        100.125.140.37) USER="dev2-google01" ;;
+        100.88.166.46) USER="dev2-google02" ;;
+        100.79.228.13) USER="dev2-google04" ;;
         *) echo "❌ USER 매핑 실패"; return ;;
     esac
 

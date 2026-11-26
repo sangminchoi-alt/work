@@ -39,9 +39,9 @@ if [ -z "$MODEL" ]; then
 fi
 
 case "$MODEL" in
-    BFX-AT400) REMOTE="dev2-google11@192.168.3.211:/home/dev2-google11/android-tvts/latest/android-tvts/tools" ;;
-    BFX-AT100) REMOTE="dev2-google02@192.168.2.202:/home/dev2-google02/android-tvts/latest/android-tvts/tools" ;;
-    BFX-UA300) REMOTE="dev2-google04@192.168.2.204:/home/dev2-google04/android-tvts/latest/android-tvts/tools" ;;
+    BFX-AT400) REMOTE="dev2-google11@100.105.46.6:/home/dev2-google11/android-tvts/latest/android-tvts/tools" ;;
+    BFX-AT100) REMOTE="dev2-google02@100.88.166.46:/home/dev2-google02/android-tvts/latest/android-tvts/tools" ;;
+    BFX-UA300) REMOTE="dev2-google04@100.79.228.13:/home/dev2-google04/android-tvts/latest/android-tvts/tools" ;;
     *)
         echo "에러: 알 수 없는 모델입니다: ${MODEL} (buildFingerPrint: ${BUILD_FINGERPRINT})" >&2
         exit 1
