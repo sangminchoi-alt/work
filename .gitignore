@@ -3,3 +3,4 @@
 *.txt
 .ftp_credentials
 .slack_webhook
+android-cts_verifier/
