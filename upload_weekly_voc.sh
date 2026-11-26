@@ -2,9 +2,10 @@
 #
 # CSV 파일(원본 그대로)을 voc_${시작날짜}_${종료날짜}_${모델명}_${버전}.csv
 # 이름으로 바꿔 원격 서버에 scp 업로드한다.
+# XLSX 파일을 주면 첫 번째 시트를 UTF-8 CSV로 변환해서 같은 방식으로 업로드한다.
 #
 # 시작/종료 날짜는 CSV 전체에서 가장 빠른/늦은 날짜를 사용한다.
-# (지원 컬럼: MODEL_NAME/@cnsl_timestamp per hour 또는 CUSTOMER_MODEL_NAME/MANUFACTURING_DATE)
+# (지원 컬럼: MODEL_NAME/@cnsl_timestamp per <간격> 또는 CUSTOMER_MODEL_NAME/MANUFACTURING_DATE)
 # 업로드할 모델/버전 조합은 CSV에서 자동으로 뽑지 않고, 인자로 직접 지정한다.
 # 파일 내용은 쪼개지 않고, 조합 수만큼 같은 원본 파일을 이름만 바꿔 반복 업로드한다.
 #
@@ -12,7 +13,7 @@
 # voc_csv_info.py(csv 모듈)를 사용한다.
 #
 # 사용법:
-#   ./upload_weekly_voc.sh [-n] <csv_file> <모델:버전> [<모델:버전> ...]
+#   ./upload_weekly_voc.sh [-n] <csv_or_xlsx_file> <모델:버전> [<모델:버전> ...]
 #
 #   -n   dry-run: scp 없이 결과 파일명만 출력
 #
@@ -38,7 +39,7 @@ CSV_INFO_PY="$SCRIPT_DIR/voc_csv_info.py"
 DRY_RUN=0
 
 usage() {
-    echo "사용법: $0 [-n] <csv_file> <모델:버전> [<모델:버전> ...]" >&2
+    echo "사용법: $0 [-n] <csv_or_xlsx_file> <모델:버전> [<모델:버전> ...]" >&2
     echo "예: $0 MP_data.csv BFX-AT400:24.561.130 BFX-UA300:19.551.30" >&2
     exit 1
 }
@@ -59,10 +60,14 @@ PAIR_ARGS=("$@")
 
 [ -f "$CSV_FILE" ] || { echo "파일을 찾을 수 없습니다: $CSV_FILE" >&2; exit 1; }
 
+IS_XLSX=0
+shopt -s nocasematch
 case "$CSV_FILE" in
-    *.csv|*.CSV) ;;
-    *) echo "csv 파일이 아닙니다: $CSV_FILE" >&2; exit 1 ;;
+    *.csv) ;;
+    *.xlsx) IS_XLSX=1 ;;
+    *) echo "csv/xlsx 파일이 아닙니다: $CSV_FILE" >&2; exit 1 ;;
 esac
+shopt -u nocasematch
 
 for pair in "${PAIR_ARGS[@]}"; do
     case "$pair" in
@@ -74,7 +79,17 @@ done
 command -v python3 >/dev/null 2>&1 || { echo "python3가 필요합니다." >&2; exit 1; }
 [ -f "$CSV_INFO_PY" ] || { echo "헬퍼 스크립트를 찾을 수 없습니다: $CSV_INFO_PY" >&2; exit 1; }
 
-INFO_OUT="$(python3 "$CSV_INFO_PY" "$CSV_FILE")"
+# XLSX면 임시 CSV로 변환해서 그 파일을 업로드한다 (서버에는 항상 .csv로 올라감)
+UPLOAD_FILE="$CSV_FILE"
+if [ "$IS_XLSX" -eq 1 ]; then
+    TMP_DIR="$(mktemp -d)"
+    trap 'rm -rf "$TMP_DIR"' EXIT
+    UPLOAD_FILE="$TMP_DIR/converted.csv"
+    python3 "$CSV_INFO_PY" --to-csv "$UPLOAD_FILE" "$CSV_FILE"
+    echo "xlsx -> csv 변환 완료"
+fi
+
+INFO_OUT="$(python3 "$CSV_INFO_PY" "$UPLOAD_FILE")"
 RANGE_LINE="$(printf '%s\n' "$INFO_OUT" | head -1)"
 MODELS_LIST="$(printf '%s\n' "$INFO_OUT" | tail -n +2)"
 
@@ -113,7 +128,7 @@ for pair in "${PAIR_ARGS[@]}"; do
     fi
 
     echo "업로드 중: ${remote_name}"
-    scp "$CSV_FILE" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/${remote_name}"
+    scp "$UPLOAD_FILE" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/${remote_name}"
 done
 
 echo "완료"
